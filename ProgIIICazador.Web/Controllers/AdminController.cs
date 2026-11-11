@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
+using ProgIIICazador.Web.Services.Captura;
+using ProgIIICazador.Web.Services.Procesamiento;
 
 namespace ProgIIICazador.Web.Controllers;
 
-public class AdminController(OfertasDbContext db, IConfiguration configuration) : Controller
+public class AdminController(OfertasDbContext db, IConfiguration configuration, IClasificadorOfertas clasificador) : Controller
 {
     [AllowAnonymous, HttpGet]
     public IActionResult Login(string? returnUrl = null) { ViewBag.ReturnUrl = returnUrl; return View(); }
@@ -27,9 +29,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration) 
             ModelState.AddModelError(string.Empty, "El acceso administrativo no está configurado. Definí Admin__Contrasena como variable de entorno.");
             return View(model);
         }
-        var userOk = FixedEquals(model.Usuario, expectedUser ?? string.Empty);
-        var passwordOk = FixedEquals(model.Contrasena, expectedPassword);
-        if (!userOk || !passwordOk)
+        if (!FixedEquals(model.Usuario, expectedUser ?? string.Empty) || !FixedEquals(model.Contrasena, expectedPassword))
         {
             ModelState.AddModelError(string.Empty, "Usuario o contraseña incorrectos.");
             return View(model);
@@ -56,29 +56,44 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration) 
     {
         var captura = await db.CapturasFuente.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
         if (captura is null) return NotFound();
-        return View(new RevisionCapturaViewModel { CapturaId = captura.Id, Titulo = captura.TituloDetectado ?? string.Empty,
-            Descripcion = captura.TextoDetectado, UrlFuente = captura.Url });
+        ResultadoClasificacion result;
+        try { result = await clasificador.ClasificarAsync(captura.TextoDetectado, HttpContext.RequestAborted); }
+        catch (Exception) { result = new ResultadoClasificacion(false, null, null, null, null, null, null, null, null, 0, "No se pudo clasificar nuevamente; completar manualmente."); }
+        ViewBag.Confianza = captura.ConfianzaClasificacion;
+        ViewBag.EsOferta = captura.EsOfertaDetectada;
+        return View(new RevisionCapturaViewModel {
+            CapturaId = captura.Id, Titulo = result.Titulo ?? captura.TituloDetectado ?? string.Empty,
+            Descripcion = captura.TextoDetectado, Beneficio = result.Beneficio ?? string.Empty,
+            Condiciones = result.Condiciones ?? string.Empty, TipoBeneficio = result.TipoBeneficio ?? "Beneficio",
+            VigenciaDesde = result.Desde, VigenciaHasta = result.Hasta, UrlFuente = captura.Url
+        });
     }
 
     [Authorize(Roles = "Administrador"), HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Revisar(RevisionCapturaViewModel model)
     {
-        var captura = await db.CapturasFuente.Include(c => c.Empresa).FirstOrDefaultAsync(c => c.Id == model.CapturaId);
+        var captura = await db.CapturasFuente.FirstOrDefaultAsync(c => c.Id == model.CapturaId);
         if (captura is null) return NotFound();
         if (!Uri.TryCreate(model.UrlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
             ModelState.AddModelError(nameof(model.UrlFuente), "La fuente debe ser una dirección HTTPS válida.");
         if (model.VigenciaDesde.HasValue && model.VigenciaHasta.HasValue && model.VigenciaHasta < model.VigenciaDesde)
             ModelState.AddModelError(nameof(model.VigenciaHasta), "La fecha de fin no puede ser anterior al inicio.");
+        if (model.Publicar && (string.IsNullOrWhiteSpace(model.Beneficio) || string.IsNullOrWhiteSpace(model.Condiciones)))
+            ModelState.AddModelError(string.Empty, "Para publicar, completá y verificá el beneficio y sus condiciones.");
         if (!ModelState.IsValid) return View(model);
         if (model.Publicar)
         {
-            var oferta = new Oferta { EmpresaId = captura.EmpresaId, Titulo = model.Titulo.Trim(), Descripcion = model.Descripcion.Trim(),
+            var oferta = new Oferta {
+                EmpresaId = captura.EmpresaId, Titulo = model.Titulo.Trim(), Descripcion = model.Descripcion.Trim(),
                 Beneficio = model.Beneficio.Trim(), Condiciones = model.Condiciones.Trim(), VigenciaDesde = model.VigenciaDesde,
                 VigenciaHasta = model.VigenciaHasta, UrlFuente = model.UrlFuente, FechaCaptura = captura.FechaCapturaUtc,
-                UltimaVerificacion = DateTime.UtcNow, Estado = EstadoOferta.Publicada, HuellaContenido = captura.HuellaContenido };
+                UltimaVerificacion = DateTime.UtcNow, Estado = model.VigenciaHasta < DateTime.UtcNow.Date ? EstadoOferta.Vencida : EstadoOferta.Publicada,
+                HuellaContenido = captura.HuellaContenido
+            };
+            oferta.Beneficios.Add(new Beneficio { Tipo = string.IsNullOrWhiteSpace(model.TipoBeneficio) ? "Beneficio" : model.TipoBeneficio.Trim(), Descripcion = model.Beneficio.Trim() });
             db.Ofertas.Add(oferta);
             captura.Estado = EstadoCaptura.Procesada;
-            captura.Observacion = "Aprobada y publicada por administración.";
+            captura.Observacion = "Aprobada por administración después de contrastar con la fuente original.";
         }
         else
         {
@@ -105,7 +120,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration) 
         .ThenInclude(o => o!.Empresa).OrderBy(r => r.Estado).ThenByDescending(r => r.FechaCreacion).ToListAsync());
 
     [Authorize(Roles = "Administrador"), HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> EjecutarCaptura([FromServices] Services.Captura.ServicioCaptura servicio, CancellationToken cancellationToken)
+    public async Task<IActionResult> EjecutarCaptura([FromServices] ServicioCaptura servicio, CancellationToken cancellationToken)
     {
         TempData["CapturaResultado"] = $"Se detectaron {await servicio.EjecutarAsync(cancellationToken)} candidatos nuevos para revisar.";
         return RedirectToAction(nameof(Index));
