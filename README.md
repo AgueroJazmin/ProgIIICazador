@@ -1,39 +1,99 @@
 # Cazador de Ofertas
 
-Aplicación web ASP.NET Core MVC para centralizar ofertas publicadas por McDonald's, Burger King y Mostaza.
+Aplicación web ASP.NET Core MVC para centralizar promociones publicadas por McDonald's, Burger King y Mostaza en Argentina. El sistema no compara marcas, productos ni precios y no gestiona delivery.
 
 ## Tecnologías
 
-- C# y ASP.NET Core MVC sobre .NET 10.
-- Entity Framework Core 10.
-- SQL Server (LocalDB en desarrollo).
+- C# / ASP.NET Core MVC sobre .NET 10.
+- Entity Framework Core 10 y SQL Server.
 - Bootstrap 5.
+- Captura web mediante HttpClient y lectura de datos estructurados Schema.org.
+- OCR opcional mediante Azure AI Document Intelligence.
+- Clasificación opcional mediante una API compatible con OpenAI Chat Completions.
+- GitHub Actions para restauración y compilación.
 
 ## Ejecutar en desarrollo
 
-Requisitos: SDK de .NET 10 y SQL Server LocalDB instalado.
-
-Desde la raíz del repositorio:
+Requisitos: .NET 10 SDK, SQL Server LocalDB y Visual Studio 2026 o Visual Studio Code.
 
 ```bash
 dotnet restore ProgIIICazador.Web/ProgIIICazador.Web.csproj
 dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
 ```
 
-La aplicación crea la base de datos de desarrollo si todavía no existe. La cadena de conexión se configura en `ProgIIICazador.Web/appsettings.json`.
+En Development se crea la base de datos inicial si no existe mediante EnsureCreated. Esta inicialización es para el primer arranque de desarrollo; no reemplaza migraciones de EF Core para actualizar una base existente ni debe usarse como estrategia de despliegue productivo. Si ya existe una base creada con una versión anterior del modelo, respaldá los datos y recreá la base local antes de probar esta versión.
 
-## Alcance funcional
+La cadena de conexión está en `ConnectionStrings:OfertasDb`. Para otro SQL Server, reemplazá el valor mediante configuración o variables de entorno.
 
-- Consulta de ofertas publicadas y filtros por empresa o texto.
-- Ficha de oferta con beneficio, condiciones, vigencia y enlace a la publicación original.
-- Registro de reportes asociados a una oferta.
+## Configuración de administración
 
-## Estado del desarrollo
+No existe una contraseña predeterminada. Definí variables de entorno antes de ejecutar la aplicación:
 
-Esta es la primera base ejecutable del sistema: proyecto MVC, persistencia inicial, catálogo de empresas y flujo público de consulta y reportes.
+- `Admin__Usuario`: usuario administrador (por defecto se muestra admin si no se define).
+- `Admin__Contrasena`: contraseña segura obligatoria.
 
-Todavía falta implementar el proceso automático de extracción por empresa, OCR de imágenes y documentos, clasificación y normalización asistidas por IA, actualización periódica y el panel autenticado de administración. Las ofertas no se inventan ni se cargan como reales: solo se publicarán cuando exista información verificable y una fuente original.
+En PowerShell:
 
-## Arquitectura prevista
+```powershell
+$env:Admin__Usuario = "admin"
+$env:Admin__Contrasena = "CAMBIAR_POR_UNA_CLAVE_SEGURA"
+dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
+```
 
-Monolito modular con los módulos CapturaOfertas, GestionOfertas, ConsultaOfertas y ReportesOfertas. Los vertical slices organizan las nueve historias de usuario en incorporación/procesamiento/actualización, consulta/acceso a fuente original y reportes de problemas.
+El panel se abre desde Administración. Las rutas administrativas usan autenticación por cookie, HTTPS, autorización por rol y protección antifalsificación en los formularios.
+
+## Captura automática
+
+La captura periódica está desactivada por defecto. Para activarla:
+
+```powershell
+$env:Captura__Habilitada = "true"
+$env:Captura__IntervaloMinutos = "360"
+```
+
+El intervalo permitido se limita a entre 30 minutos y 24 horas. Se consultan las URL oficiales configuradas en cada empresa. El extractor lee metadatos y bloques JSON-LD Schema.org; si no encuentra ofertas estructuradas, guarda texto de la página como candidato. No ejecuta JavaScript, no evade bloqueos y no garantiza detectar contenido que solo exista dentro de una app o detrás de autenticación.
+
+Cada candidato se guarda como pendiente de revisión, con huella para evitar duplicados. El administrador debe verificar la publicación original y completar beneficio, condiciones y vigencia antes de publicarla. Las ofertas vencidas se excluyen del catálogo y pasan a estado vencido durante la siguiente ejecución de captura.
+
+## OCR de imágenes y documentos
+
+Para habilitar OCR con Azure AI Document Intelligence, configurá:
+
+- `Ocr__Endpoint`
+- `Ocr__Key`
+- Opcional: `Ocr__ModelId` (por defecto `prebuilt-read`).
+
+El panel permite subir PDF, PNG o JPG de hasta 10 MB y asociarlo a una URL oficial. El texto extraído queda pendiente de revisión; el OCR no valida por sí mismo la vigencia ni la veracidad de una promoción.
+
+## Clasificación con IA
+
+La integración es opcional y usa un endpoint compatible con OpenAI Chat Completions:
+
+- `IA__Endpoint`: URL base de la API compatible.
+- `IA__ApiKey`: clave de acceso.
+- `IA__Modelo`: identificador del modelo.
+
+Sin estas variables se usa un clasificador local conservador basado en reglas. La clasificación es orientativa y siempre requiere revisión humana. No se deben cargar claves en el repositorio.
+
+## Funcionalidades implementadas
+
+- Catálogo público de ofertas publicadas, filtros por empresa y búsqueda.
+- Ficha de oferta con beneficio, condiciones, vigencia y enlace a la fuente original.
+- Modelo de beneficios estructurados.
+- Captura automática de páginas oficiales, lectura de JSON-LD/metadatos y deduplicación por huella.
+- Ejecución periódica configurable y detección de ofertas vencidas.
+- OCR opcional de documentos e imágenes.
+- Clasificación preliminar por reglas o IA configurable.
+- Panel administrativo con login, revisión, publicación o descarte de capturas.
+- Recepción y resolución de reportes de usuarios.
+- Validaciones de formularios y enlaces HTTPS para fuentes.
+
+## Alcance y limitaciones conocidas
+
+La extracción genérica no reemplaza conectores específicos por marca. Las páginas oficiales pueden cambiar su estructura, cargar promociones dinámicamente o reservar información para sus aplicaciones. Para lograr cobertura completa y estable habrá que verificar y mantener los endpoints o selectores específicos de cada marca, respetando sus términos y límites de acceso. No se inventan ofertas ni se publica información sin aprobación.
+
+La app está en desarrollo. Antes de producción faltan migraciones versionadas de EF Core, pruebas automatizadas de integración y seguridad, configuración real de credenciales/servicios externos, revisión legal de la captura automatizada y pruebas de despliegue. El flujo OCR/IA necesita sus credenciales para operar con proveedores externos.
+
+## Estructura
+
+Monolito modular organizado en CapturaOfertas, GestionOfertas, ConsultaOfertas y ReportesOfertas, con vertical slices para incorporación/procesamiento/actualización, consulta y reportes.
