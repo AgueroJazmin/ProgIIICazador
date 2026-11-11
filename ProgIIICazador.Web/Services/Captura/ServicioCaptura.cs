@@ -40,7 +40,7 @@ public sealed class ServicioCaptura(OfertasDbContext db, IExtractorFuente extrac
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             { logger.LogWarning(ex, "No se pudo consultar la fuente de {Empresa}", empresa.Nombre); }
         }
-        var vencidas = await db.Ofertas.Where(o => o.Estado == EstadoOferta.Publicada && o.VigenciaHasta != null && o.VigenciaHasta < DateTime.UtcNow.Date).ToListAsync(cancellationToken);
+        var vencidas = await db.Ofertas.Where(o => o.Estado == EstadoOferta.Publicada && o.VigenciaHasta != null && o.VigenciaHasta < DateTime.Today).ToListAsync(cancellationToken);
         foreach (var oferta in vencidas) oferta.Estado = EstadoOferta.Vencida;
         if (vencidas.Count > 0) await db.SaveChangesAsync(cancellationToken);
         return nuevas;
