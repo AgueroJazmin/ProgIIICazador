@@ -25,7 +25,7 @@ public class AdminCapturasController(OfertasDbContext db, IProveedorOCR ocr) : C
     {
         ViewBag.Empresas = await db.Empresas.Where(e => e.Activa).OrderBy(e => e.Nombre).ToListAsync();
         if (archivo is null || archivo.Length == 0) ModelState.AddModelError("archivo", "Seleccioná un archivo.");
-        if (archivo?.Length > 10_000_000) ModelState.AddModelError("archivo", "El archivo no puede superar los 10 MB.");
+        if (archivo is not null && archivo.Length > 10_000_000) ModelState.AddModelError("archivo", "El archivo no puede superar los 10 MB.");
         if (!Uri.TryCreate(urlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
             ModelState.AddModelError("urlFuente", "Ingresá la URL HTTPS de la publicación oficial.");
         if (!await db.Empresas.AnyAsync(e => e.Id == empresaId && e.Activa, cancellationToken))
