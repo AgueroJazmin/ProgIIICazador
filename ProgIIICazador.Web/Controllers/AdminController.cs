@@ -83,21 +83,41 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
         if (!ModelState.IsValid) return View(model);
         if (model.Publicar)
         {
-            var oferta = new Oferta {
-                EmpresaId = captura.EmpresaId, Titulo = model.Titulo.Trim(), Descripcion = model.Descripcion.Trim(),
-                Beneficio = model.Beneficio.Trim(), Condiciones = model.Condiciones.Trim(), VigenciaDesde = model.VigenciaDesde,
-                VigenciaHasta = model.VigenciaHasta, UrlFuente = model.UrlFuente, FechaCaptura = captura.FechaCapturaUtc,
-                UltimaVerificacion = DateTime.UtcNow, Estado = (model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < DateTime.UtcNow.Date) ? EstadoOferta.Vencida : EstadoOferta.Publicada,
-                HuellaContenido = captura.HuellaContenido
-            };
-            oferta.Beneficios.Add(new Beneficio { Tipo = string.IsNullOrWhiteSpace(model.TipoBeneficio) ? "Beneficio" : model.TipoBeneficio.Trim(), Descripcion = model.Beneficio.Trim(), Porcentaje = model.Porcentaje, Importe = model.Importe, TopeReintegro = model.TopeReintegro, Moneda = model.Importe.HasValue || model.TopeReintegro.HasValue ? "ARS" : null });
+            var oferta = await db.Ofertas.Include(o => o.Beneficios)
+                .FirstOrDefaultAsync(o => o.UrlFuente == model.UrlFuente && o.Titulo == model.Titulo.Trim());
+            if (oferta is null)
+            {
+                oferta = new Oferta { EmpresaId = captura.EmpresaId, FechaCaptura = captura.FechaCapturaUtc };
+                db.Ofertas.Add(oferta);
+                captura.Oferta = oferta;
+            }
+            else
+            {
+                captura.OfertaId = oferta.Id;
+                oferta.Beneficios.Clear();
+            }
+            oferta.Titulo = model.Titulo.Trim();
+            oferta.Descripcion = model.Descripcion.Trim();
+            oferta.Beneficio = model.Beneficio.Trim();
+            oferta.Condiciones = model.Condiciones.Trim();
+            oferta.VigenciaDesde = model.VigenciaDesde;
+            oferta.VigenciaHasta = model.VigenciaHasta;
+            oferta.UrlFuente = model.UrlFuente;
+            oferta.UltimaVerificacion = DateTime.UtcNow;
+            oferta.Estado = model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < DateTime.UtcNow.Date
+                ? EstadoOferta.Vencida : EstadoOferta.Publicada;
+            oferta.HuellaContenido = captura.HuellaContenido;
+            oferta.Beneficios.Add(new Beneficio {
+                Tipo = string.IsNullOrWhiteSpace(model.TipoBeneficio) ? "Beneficio" : model.TipoBeneficio.Trim(),
+                Descripcion = model.Beneficio.Trim(), Porcentaje = model.Porcentaje, Importe = model.Importe,
+                TopeReintegro = model.TopeReintegro, Moneda = model.Importe.HasValue || model.TopeReintegro.HasValue ? "ARS" : null
+            });
             foreach (var line in (model.BeneficiosAdicionales ?? string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var parts = line.Split('|', 2, StringSplitOptions.TrimEntries);
                 if (parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
                     oferta.Beneficios.Add(new Beneficio { Tipo = parts[0][..Math.Min(parts[0].Length, 80)], Descripcion = parts[1][..Math.Min(parts[1].Length, 500)] });
             }
-            db.Ofertas.Add(oferta);
             captura.Estado = EstadoCaptura.Procesada;
             captura.Observacion = "Aprobada por administración después de contrastar con la fuente original.";
         }
