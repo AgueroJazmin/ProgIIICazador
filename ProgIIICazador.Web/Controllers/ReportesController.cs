@@ -21,8 +21,8 @@ public class ReportesController(OfertasDbContext db) : Controller
     {
         if (!MotivosPermitidos.Contains(reporte.Motivo))
             ModelState.AddModelError(nameof(reporte.Motivo), "Seleccioná un motivo válido.");
-        var ofertaExiste = await db.Ofertas.AnyAsync(o => o.Id == reporte.OfertaId && o.Estado == EstadoOferta.Publicada);
-        if (!ofertaExiste) ModelState.AddModelError(nameof(reporte.OfertaId), "Seleccioná una oferta publicada válida.");
+        var ofertaExiste = await db.Ofertas.AnyAsync(o => o.Id == reporte.OfertaId && (o.Estado == EstadoOferta.Publicada || o.Estado == EstadoOferta.Vencida));
+        if (!ofertaExiste) ModelState.AddModelError(nameof(reporte.OfertaId), "Seleccioná una oferta válida.");
         if (!ModelState.IsValid)
         {
             await CargarOfertas();
@@ -41,7 +41,7 @@ public class ReportesController(OfertasDbContext db) : Controller
     private async Task CargarOfertas()
     {
         ViewBag.Ofertas = await db.Ofertas.AsNoTracking().Include(o => o.Empresa)
-            .Where(o => o.Estado == EstadoOferta.Publicada)
+            .Where(o => o.Estado == EstadoOferta.Publicada || o.Estado == EstadoOferta.Vencida)
             .OrderBy(o => o.Empresa!.Nombre).ThenBy(o => o.Titulo).ToListAsync();
     }
 }
