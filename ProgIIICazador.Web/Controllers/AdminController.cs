@@ -104,7 +104,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
             oferta.VigenciaHasta = model.VigenciaHasta;
             oferta.UrlFuente = model.UrlFuente;
             oferta.UltimaVerificacion = DateTime.UtcNow;
-            oferta.Estado = model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < DateTime.UtcNow.Date
+            oferta.Estado = model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < DateTime.Today
                 ? EstadoOferta.Vencida : EstadoOferta.Publicada;
             oferta.HuellaContenido = captura.HuellaContenido;
             oferta.Beneficios.Add(new Beneficio {
