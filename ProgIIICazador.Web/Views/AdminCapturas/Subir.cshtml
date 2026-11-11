@@ -1,0 +1,10 @@
+@{ ViewData["Title"] = "Procesar documento o imagen"; var empresas = ViewBag.Empresas as IEnumerable<Empresa> ?? Enumerable.Empty<Empresa>(); }
+<h1 class="h2">Procesar imagen o documento</h1>
+<p class="text-muted">El OCR extrae texto de una publicación oficial. No confirma por sí solo que una promoción esté vigente o sea correcta.</p>
+<form asp-action="Subir" method="post" enctype="multipart/form-data" class="card card-body col-lg-8">
+<div asp-validation-summary="All" class="text-danger"></div>
+<div class="mb-3"><label class="form-label" for="empresaId">Empresa</label><select class="form-select" id="empresaId" name="empresaId" required><option value="">Seleccioná</option>@foreach(var e in empresas){<option value="@e.Id">@e.Nombre</option>}</select></div>
+<div class="mb-3"><label class="form-label" for="urlFuente">URL de la publicación oficial</label><input class="form-control" id="urlFuente" name="urlFuente" type="url" placeholder="https://..." required /></div>
+<div class="mb-3"><label class="form-label" for="archivo">Archivo (PDF, PNG o JPG; máximo 10 MB)</label><input class="form-control" id="archivo" name="archivo" type="file" accept=".pdf,.png,.jpg,.jpeg" required /></div>
+<button class="btn btn-dark">Extraer texto con OCR</button>
+</form>
