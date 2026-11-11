@@ -9,7 +9,7 @@ public class OfertasController(OfertasDbContext db) : Controller
 {
     public async Task<IActionResult> Index(string? marca, string? buscar)
     {
-        var today = DateTime.UtcNow.Date;
+        var today = DateTime.Today;
         var query = db.Ofertas.AsNoTracking().Include(o => o.Empresa).Include(o => o.Beneficios)
             .Where(o => o.Estado == EstadoOferta.Publicada && (o.VigenciaDesde == null || o.VigenciaDesde <= today)
                 && (o.VigenciaHasta == null || o.VigenciaHasta >= today));
