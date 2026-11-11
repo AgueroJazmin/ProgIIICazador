@@ -10,11 +10,10 @@
     <div class="mb-3"><label asp-for="OfertaId" class="form-label">Oferta</label>
         <select asp-for="OfertaId" class="form-select">
             <option value="">Seleccioná una oferta</option>
-            @foreach (var o in ofertas) { <option value="@o.Id">@o.Empresa?.Nombre - @o.Titulo</option> }
-            @if (ViewBag.Oferta is Oferta seleccionada) { <option value="@seleccionada.Id" selected>@seleccionada.Empresa?.Nombre - @seleccionada.Titulo</option> }
+            @foreach (var o in ofertas) { <option value="@o.Id">@o.Empresa?.Nombre - @o.Titulo @(o.Estado == EstadoOferta.Vencida ? "(marcada como vencida)" : "")</option> }
         </select><span asp-validation-for="OfertaId" class="text-danger"></span>
     </div>
     <div class="mb-3"><label asp-for="Motivo" class="form-label">Motivo</label><select asp-for="Motivo" class="form-select"><option value="">Seleccioná un motivo</option><option>Oferta vencida</option><option>Beneficio o precio incorrecto</option><option>Condiciones incorrectas o incompletas</option><option>Enlace de origen incorrecto</option><option>Otro problema</option></select><span asp-validation-for="Motivo" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Detalle" class="form-label">Detalle (opcional)</label><textarea asp-for="Detalle" class="form-control" rows="4" maxlength="1000"></textarea></div>
+    <div class="mb-3"><label asp-for="Detalle" class="form-label">Detalle (opcional)</label><textarea asp-for="Detalle" class="form-control" rows="4" maxlength="1000"></textarea><span asp-validation-for="Detalle" class="text-danger"></span></div>
     <button class="btn btn-dark" type="submit">Enviar reporte</button>
 </form>
