@@ -10,8 +10,7 @@ public class ReportesController(OfertasDbContext db) : Controller
     [HttpGet]
     public async Task<IActionResult> Create(int? ofertaId)
     {
-        if (ofertaId.HasValue)
-            ViewBag.Oferta = await db.Ofertas.AsNoTracking().Include(o => o.Empresa).FirstOrDefaultAsync(o => o.Id == ofertaId.Value);
+        await CargarOfertas();
         return View(new Reporte { OfertaId = ofertaId ?? 0 });
     }
 
@@ -20,10 +19,12 @@ public class ReportesController(OfertasDbContext db) : Controller
     public async Task<IActionResult> Create(Reporte reporte)
     {
         var ofertaExiste = await db.Ofertas.AnyAsync(o => o.Id == reporte.OfertaId);
-        if (!ofertaExiste) ModelState.AddModelError(nameof(reporte.OfertaId), "La oferta seleccionada no existe.");
+        if (!ofertaExiste)
+            ModelState.AddModelError(nameof(reporte.OfertaId), "Seleccioná una oferta válida.");
+
         if (!ModelState.IsValid)
         {
-            ViewBag.Ofertas = await db.Ofertas.AsNoTracking().Include(o => o.Empresa).OrderBy(o => o.Titulo).ToListAsync();
+            await CargarOfertas();
             return View(reporte);
         }
 
@@ -35,4 +36,13 @@ public class ReportesController(OfertasDbContext db) : Controller
     }
 
     public IActionResult Gracias() => View();
+
+    private async Task CargarOfertas()
+    {
+        ViewBag.Ofertas = await db.Ofertas.AsNoTracking()
+            .Include(o => o.Empresa)
+            .OrderBy(o => o.Empresa!.Nombre)
+            .ThenBy(o => o.Titulo)
+            .ToListAsync();
+    }
 }
