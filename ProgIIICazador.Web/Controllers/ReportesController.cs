@@ -7,6 +7,8 @@ namespace ProgIIICazador.Web.Controllers;
 
 public class ReportesController(OfertasDbContext db) : Controller
 {
+    private static readonly string[] MotivosPermitidos = ["Oferta vencida", "Beneficio o precio incorrecto", "Condiciones incorrectas o incompletas", "Enlace de origen incorrecto", "Otro problema"];
+
     [HttpGet]
     public async Task<IActionResult> Create(int? ofertaId)
     {
@@ -14,20 +16,19 @@ public class ReportesController(OfertasDbContext db) : Controller
         return View(new Reporte { OfertaId = ofertaId ?? 0 });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Reporte reporte)
     {
-        var ofertaExiste = await db.Ofertas.AnyAsync(o => o.Id == reporte.OfertaId);
-        if (!ofertaExiste)
-            ModelState.AddModelError(nameof(reporte.OfertaId), "Seleccioná una oferta válida.");
-
+        if (!MotivosPermitidos.Contains(reporte.Motivo))
+            ModelState.AddModelError(nameof(reporte.Motivo), "Seleccioná un motivo válido.");
+        var ofertaExiste = await db.Ofertas.AnyAsync(o => o.Id == reporte.OfertaId && o.Estado == EstadoOferta.Publicada);
+        if (!ofertaExiste) ModelState.AddModelError(nameof(reporte.OfertaId), "Seleccioná una oferta publicada válida.");
         if (!ModelState.IsValid)
         {
             await CargarOfertas();
             return View(reporte);
         }
-
+        reporte.Detalle = reporte.Detalle?.Trim();
         reporte.FechaCreacion = DateTime.UtcNow;
         reporte.Estado = EstadoReporte.Pendiente;
         db.Reportes.Add(reporte);
@@ -39,10 +40,8 @@ public class ReportesController(OfertasDbContext db) : Controller
 
     private async Task CargarOfertas()
     {
-        ViewBag.Ofertas = await db.Ofertas.AsNoTracking()
-            .Include(o => o.Empresa)
-            .OrderBy(o => o.Empresa!.Nombre)
-            .ThenBy(o => o.Titulo)
-            .ToListAsync();
+        ViewBag.Ofertas = await db.Ofertas.AsNoTracking().Include(o => o.Empresa)
+            .Where(o => o.Estado == EstadoOferta.Publicada)
+            .OrderBy(o => o.Empresa!.Nombre).ThenBy(o => o.Titulo).ToListAsync();
     }
 }
