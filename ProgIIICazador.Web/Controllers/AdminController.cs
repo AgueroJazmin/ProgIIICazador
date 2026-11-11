@@ -76,7 +76,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
         if (captura is null) return NotFound();
         if (!Uri.TryCreate(model.UrlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
             ModelState.AddModelError(nameof(model.UrlFuente), "La fuente debe ser una dirección HTTPS válida.");
-        if (model.VigenciaDesde.HasValue && model.VigenciaHasta.HasValue && model.VigenciaHasta < model.VigenciaDesde)
+        if (model.VigenciaDesde.HasValue && model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < model.VigenciaDesde.Value)
             ModelState.AddModelError(nameof(model.VigenciaHasta), "La fecha de fin no puede ser anterior al inicio.");
         if (model.Publicar && (string.IsNullOrWhiteSpace(model.Titulo) || string.IsNullOrWhiteSpace(model.Beneficio) || string.IsNullOrWhiteSpace(model.Condiciones)))
             ModelState.AddModelError(string.Empty, "Para publicar, completá y verificá el título, el beneficio y sus condiciones.");
