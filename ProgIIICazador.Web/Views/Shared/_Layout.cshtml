@@ -17,6 +17,8 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" asp-controller="Ofertas" asp-action="Index">Ofertas</a></li>
                     <li class="nav-item"><a class="nav-link" asp-controller="Reportes" asp-action="Create">Reportar un problema</a></li>
+                    @if (User.Identity?.IsAuthenticated == true) { <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index">Administración</a></li> }
+                    else { <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Login">Administración</a></li> }
                 </ul>
             </div>
         </div>
