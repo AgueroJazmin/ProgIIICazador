@@ -13,9 +13,11 @@ public class CapturaFuente
     public string? DatosEstructuradosJson { get; set; }
     public DateTime FechaCapturaUtc { get; set; } = DateTime.UtcNow;
     public EstadoCaptura Estado { get; set; } = EstadoCaptura.PendienteRevision;
-    public string? HuellaContenido { get; set; }
+    [StringLength(64)] public string? HuellaContenido { get; set; }
     public int? OfertaId { get; set; }
     public Oferta? Oferta { get; set; }
+    public bool EsOfertaDetectada { get; set; }
+    public decimal ConfianzaClasificacion { get; set; }
     public string? Observacion { get; set; }
 }
 
