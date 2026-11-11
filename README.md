@@ -10,7 +10,7 @@ Aplicación web ASP.NET Core MVC para centralizar promociones publicadas por McD
 - Captura web mediante HttpClient y lectura de datos estructurados Schema.org.
 - OCR opcional mediante Azure AI Document Intelligence.
 - Clasificación opcional mediante una API compatible con OpenAI Chat Completions.
-- GitHub Actions para restauración y compilación.
+- GitHub Actions para restauración, compilación y pruebas unitarias.
 
 ## Ejecutar en desarrollo
 
@@ -19,6 +19,12 @@ Requisitos: .NET 10 SDK, SQL Server LocalDB y Visual Studio 2026 o Visual Studio
 ```bash
 dotnet restore ProgIIICazador.Web/ProgIIICazador.Web.csproj
 dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
+```
+
+Para ejecutar las pruebas unitarias:
+
+```bash
+dotnet test ProgIIICazador.Tests/ProgIIICazador.Tests.csproj
 ```
 
 En el primer arranque se crea la base de datos si no existe mediante EnsureCreated. Esta inicialización sirve para una instalación nueva de prueba; no reemplaza migraciones de EF Core para actualizar una base existente ni debe usarse como estrategia de despliegue productivo. Si ya existe una base creada con una versión anterior del modelo, respaldá los datos y recreá la base local antes de probar esta versión.
