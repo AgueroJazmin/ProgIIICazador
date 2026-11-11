@@ -16,7 +16,7 @@ public class OfertasDbContext(DbContextOptions<OfertasDbContext> options) : DbCo
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Empresa>().HasIndex(e => e.Slug).IsUnique();
         modelBuilder.Entity<Oferta>().HasIndex(o => o.HuellaContenido).IsUnique().HasFilter("[HuellaContenido] IS NOT NULL");
-        modelBuilder.Entity<CapturaFuente>().HasIndex(c => c.HuellaContenido).IsUnique();
+        modelBuilder.Entity<CapturaFuente>().HasIndex(c => c.HuellaContenido).IsUnique().HasFilter("[HuellaContenido] IS NOT NULL");
         modelBuilder.Entity<Empresa>().HasData(
             new Empresa { Id = 1, Nombre = "McDonald's", Slug = "mcdonalds", UrlOficial = "https://www.mcdonalds.com.ar", Activa = true },
             new Empresa { Id = 2, Nombre = "Burger King", Slug = "burger-king", UrlOficial = "https://www.burgerking.com.ar", Activa = true },
