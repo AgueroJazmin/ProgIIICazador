@@ -65,7 +65,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
             CapturaId = captura.Id, Titulo = result.Titulo ?? captura.TituloDetectado ?? string.Empty,
             Descripcion = captura.TextoDetectado, Beneficio = result.Beneficio ?? string.Empty,
             Condiciones = result.Condiciones ?? string.Empty, TipoBeneficio = result.TipoBeneficio ?? "Beneficio",
-            VigenciaDesde = result.Desde, VigenciaHasta = result.Hasta, UrlFuente = captura.Url
+            VigenciaDesde = result.Desde, VigenciaHasta = result.Hasta, Porcentaje = result.Porcentaje, Importe = result.Importe, UrlFuente = captura.Url
         });
     }
 
@@ -78,8 +78,8 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
             ModelState.AddModelError(nameof(model.UrlFuente), "La fuente debe ser una dirección HTTPS válida.");
         if (model.VigenciaDesde.HasValue && model.VigenciaHasta.HasValue && model.VigenciaHasta < model.VigenciaDesde)
             ModelState.AddModelError(nameof(model.VigenciaHasta), "La fecha de fin no puede ser anterior al inicio.");
-        if (model.Publicar && (string.IsNullOrWhiteSpace(model.Beneficio) || string.IsNullOrWhiteSpace(model.Condiciones)))
-            ModelState.AddModelError(string.Empty, "Para publicar, completá y verificá el beneficio y sus condiciones.");
+        if (model.Publicar && (string.IsNullOrWhiteSpace(model.Titulo) || string.IsNullOrWhiteSpace(model.Beneficio) || string.IsNullOrWhiteSpace(model.Condiciones)))
+            ModelState.AddModelError(string.Empty, "Para publicar, completá y verificá el título, el beneficio y sus condiciones.");
         if (!ModelState.IsValid) return View(model);
         if (model.Publicar)
         {
@@ -87,10 +87,16 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
                 EmpresaId = captura.EmpresaId, Titulo = model.Titulo.Trim(), Descripcion = model.Descripcion.Trim(),
                 Beneficio = model.Beneficio.Trim(), Condiciones = model.Condiciones.Trim(), VigenciaDesde = model.VigenciaDesde,
                 VigenciaHasta = model.VigenciaHasta, UrlFuente = model.UrlFuente, FechaCaptura = captura.FechaCapturaUtc,
-                UltimaVerificacion = DateTime.UtcNow, Estado = model.VigenciaHasta < DateTime.UtcNow.Date ? EstadoOferta.Vencida : EstadoOferta.Publicada,
+                UltimaVerificacion = DateTime.UtcNow, Estado = (model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < DateTime.UtcNow.Date) ? EstadoOferta.Vencida : EstadoOferta.Publicada,
                 HuellaContenido = captura.HuellaContenido
             };
-            oferta.Beneficios.Add(new Beneficio { Tipo = string.IsNullOrWhiteSpace(model.TipoBeneficio) ? "Beneficio" : model.TipoBeneficio.Trim(), Descripcion = model.Beneficio.Trim() });
+            oferta.Beneficios.Add(new Beneficio { Tipo = string.IsNullOrWhiteSpace(model.TipoBeneficio) ? "Beneficio" : model.TipoBeneficio.Trim(), Descripcion = model.Beneficio.Trim(), Porcentaje = model.Porcentaje, Importe = model.Importe, TopeReintegro = model.TopeReintegro, Moneda = model.Importe.HasValue || model.TopeReintegro.HasValue ? "ARS" : null });
+            foreach (var line in (model.BeneficiosAdicionales ?? string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var parts = line.Split('|', 2, StringSplitOptions.TrimEntries);
+                if (parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+                    oferta.Beneficios.Add(new Beneficio { Tipo = parts[0][..Math.Min(parts[0].Length, 80)], Descripcion = parts[1][..Math.Min(parts[1].Length, 500)] });
+            }
             db.Ofertas.Add(oferta);
             captura.Estado = EstadoCaptura.Procesada;
             captura.Observacion = "Aprobada por administración después de contrastar con la fuente original.";
