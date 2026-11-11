@@ -21,7 +21,7 @@ dotnet restore ProgIIICazador.Web/ProgIIICazador.Web.csproj
 dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
 ```
 
-En Development se crea la base de datos inicial si no existe mediante EnsureCreated. Esta inicialización es para el primer arranque de desarrollo; no reemplaza migraciones de EF Core para actualizar una base existente ni debe usarse como estrategia de despliegue productivo. Si ya existe una base creada con una versión anterior del modelo, respaldá los datos y recreá la base local antes de probar esta versión.
+En el primer arranque se crea la base de datos si no existe mediante EnsureCreated. Esta inicialización sirve para una instalación nueva de prueba; no reemplaza migraciones de EF Core para actualizar una base existente ni debe usarse como estrategia de despliegue productivo. Si ya existe una base creada con una versión anterior del modelo, respaldá los datos y recreá la base local antes de probar esta versión.
 
 La cadena de conexión está en `ConnectionStrings:OfertasDb`. Para otro SQL Server, reemplazá el valor mediante configuración o variables de entorno.
 
