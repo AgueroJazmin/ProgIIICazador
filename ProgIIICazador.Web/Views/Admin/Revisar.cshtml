@@ -1,0 +1,16 @@
+@model RevisionCapturaViewModel
+@{ ViewData["Title"] = "Revisar captura"; }
+<h1 class="h2">Revisar contenido detectado</h1>
+<p class="text-muted">La extracción automática es preliminar. Comprobá cada dato contra la publicación original antes de publicar.</p>
+<form asp-action="Revisar" method="post" class="card card-body">
+<input asp-for="CapturaId" type="hidden" />
+<div asp-validation-summary="All" class="text-danger"></div>
+<div class="mb-3"><label asp-for="Titulo" class="form-label">Título</label><input asp-for="Titulo" class="form-control" /><span asp-validation-for="Titulo" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Descripcion" class="form-label">Texto detectado / descripción</label><textarea asp-for="Descripcion" rows="5" class="form-control"></textarea></div>
+<div class="mb-3"><label asp-for="Beneficio" class="form-label">Beneficio confirmado</label><input asp-for="Beneficio" class="form-control" /></div>
+<div class="mb-3"><label asp-for="Condiciones" class="form-label">Condiciones confirmadas</label><textarea asp-for="Condiciones" rows="4" class="form-control"></textarea></div>
+<div class="row"><div class="col-md-6 mb-3"><label asp-for="VigenciaDesde" class="form-label">Válida desde</label><input asp-for="VigenciaDesde" type="date" class="form-control" /></div><div class="col-md-6 mb-3"><label asp-for="VigenciaHasta" class="form-label">Válida hasta</label><input asp-for="VigenciaHasta" type="date" class="form-control" /></div></div>
+<div class="mb-3"><label asp-for="UrlFuente" class="form-label">URL de origen</label><input asp-for="UrlFuente" class="form-control" /></div>
+<div class="form-check mb-3"><input asp-for="Publicar" class="form-check-input" /><label asp-for="Publicar" class="form-check-label">Aprobar y publicar (solo si verifiqué los datos en la fuente)</label></div>
+<div class="d-flex gap-2"><button class="btn btn-dark">Guardar revisión</button><a asp-action="Index" class="btn btn-outline-secondary">Volver</a></div>
+</form>
