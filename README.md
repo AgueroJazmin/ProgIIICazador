@@ -50,7 +50,7 @@ El panel se abre desde Administración. Las rutas administrativas usan autentica
 
 ## Captura automática
 
-La captura periódica está desactivada por defecto. Para activarla:
+La captura periódica queda habilitada por defecto, con una consulta inicial al iniciar la aplicación y un intervalo de seis horas. Para desactivarla, definí `Captura__Habilitada=false`. Para cambiar el intervalo:
 
 ```powershell
 $env:Captura__Habilitada = "true"
