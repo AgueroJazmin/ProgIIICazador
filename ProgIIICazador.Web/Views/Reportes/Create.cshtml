@@ -1,0 +1,20 @@
+@model Reporte
+@{
+    ViewData["Title"] = "Reportar un problema";
+    var ofertas = ViewBag.Ofertas as IEnumerable<Oferta> ?? Enumerable.Empty<Oferta>();
+}
+<h1 class="h2">Reportar un problema</h1>
+<p class="text-muted">Ayudanos a mantener la información actualizada. No incluyas datos personales.</p>
+<form asp-action="Create" method="post" class="card card-body col-lg-8">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="OfertaId" class="form-label">Oferta</label>
+        <select asp-for="OfertaId" class="form-select">
+            <option value="">Seleccioná una oferta</option>
+            @foreach (var o in ofertas) { <option value="@o.Id">@o.Empresa?.Nombre - @o.Titulo</option> }
+            @if (ViewBag.Oferta is Oferta seleccionada) { <option value="@seleccionada.Id" selected>@seleccionada.Empresa?.Nombre - @seleccionada.Titulo</option> }
+        </select><span asp-validation-for="OfertaId" class="text-danger"></span>
+    </div>
+    <div class="mb-3"><label asp-for="Motivo" class="form-label">Motivo</label><select asp-for="Motivo" class="form-select"><option value="">Seleccioná un motivo</option><option>Oferta vencida</option><option>Beneficio o precio incorrecto</option><option>Condiciones incorrectas o incompletas</option><option>Enlace de origen incorrecto</option><option>Otro problema</option></select><span asp-validation-for="Motivo" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Detalle" class="form-label">Detalle (opcional)</label><textarea asp-for="Detalle" class="form-control" rows="4" maxlength="1000"></textarea></div>
+    <button class="btn btn-dark" type="submit">Enviar reporte</button>
+</form>

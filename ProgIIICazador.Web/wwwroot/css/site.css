@@ -1,0 +1,6 @@
+:root { color-scheme: light; }
+body { min-height: 100vh; display: flex; flex-direction: column; background: #f7f7f5; }
+main { flex: 1; }
+.hero { background: linear-gradient(120deg, #ffe7a3, #fff4d6); }
+.card { border: 1px solid #e8e8e4; border-radius: 1rem; }
+.navbar-brand { letter-spacing: .2px; }
