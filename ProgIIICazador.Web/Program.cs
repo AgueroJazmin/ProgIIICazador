@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
-using ProgIIICazador.Web.Services.Captura;
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.CapturaOfertas;
+using ProgIIICazador.Web.Modules.GestionOfertas;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -15,30 +17,29 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.SlidingExpiration = true; options.ExpireTimeSpan = TimeSpan.FromHours(4);
 });
 builder.Services.AddAuthorization();
-builder.Services.AddHttpClient<IExtractorFuente, ExtractorWebOficial>(client => client.Timeout = TimeSpan.FromSeconds(25));
-builder.Services.AddScoped<ServicioCaptura>();
-builder.Services.AddHttpClient<AzureDocumentIntelligenceOcr>();
-builder.Services.AddScoped<IProveedorOCR>(sp =>
+builder.Services.AddRateLimiter(options =>
 {
-    var config = sp.GetRequiredService<IConfiguration>();
-    return string.IsNullOrWhiteSpace(config["Ocr:Endpoint"]) || string.IsNullOrWhiteSpace(config["Ocr:Key"])
-        ? new OcrNoConfigurado() : sp.GetRequiredService<AzureDocumentIntelligenceOcr>();
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
 });
-builder.Services.AddHttpClient<ClasificadorIA>();
-builder.Services.AddScoped<IClasificadorOfertas>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    return string.IsNullOrWhiteSpace(config["IA:Endpoint"]) || string.IsNullOrWhiteSpace(config["IA:ApiKey"]) || string.IsNullOrWhiteSpace(config["IA:Modelo"])
-        ? new ClasificadorReglas() : sp.GetRequiredService<ClasificadorIA>();
-});
-if (builder.Configuration.GetValue<bool>("Captura:Habilitada")) builder.Services.AddHostedService<CapturaProgramadaService>();
+builder.Services.AddCapturaOfertasModule(builder.Configuration);
+builder.Services.AddProcesamientoOfertasModule();
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) { app.UseExceptionHandler("/Home/Error"); app.UseHsts(); }
-app.UseHttpsRedirection(); app.UseStaticFiles(); app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+app.UseHttpsRedirection(); app.UseStaticFiles(); app.UseRouting(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<OfertasDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    await db.Database.MigrateAsync();
 }
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run();

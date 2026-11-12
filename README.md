@@ -41,7 +41,7 @@ Para ejecutar las pruebas unitarias:
 dotnet test ProgIIICazador.Tests/ProgIIICazador.Tests.csproj
 ```
 
-En el primer arranque se crea la base de datos si no existe mediante EnsureCreated. Esta inicialización sirve para una instalación nueva de prueba; no reemplaza migraciones de EF Core para actualizar una base existente ni debe usarse como estrategia de despliegue productivo. Si ya existe una base creada con una versión anterior del modelo, respaldá los datos y recreá la base local antes de probar esta versión.
+La aplicación aplica las migraciones versionadas de EF Core al iniciar y crea la base de datos si todavía no existe. La migración inicial está en `ProgIIICazador.Web/Migrations` e incluye las tres empresas iniciales. Si ya tenías una base creada con una versión anterior mediante `EnsureCreated`, EF Core no puede convertirla automáticamente en una base administrada por migraciones: respaldá los datos y recreá únicamente la base local de desarrollo antes de ejecutar esta versión. No uses ese procedimiento sobre una base con datos que quieras conservar.
 
 La cadena de conexión está en `ConnectionStrings:OfertasDb`. Para otro SQL Server, reemplazá el valor mediante configuración o variables de entorno.
 
@@ -66,9 +66,14 @@ La captura periódica queda habilitada por defecto, con una consulta inicial al 
 $env:Captura__IntervaloMinutos = "360"
 ```
 
-El intervalo permitido se limita a entre 30 minutos y 24 horas. Se consultan las URL oficiales configuradas en cada empresa. El extractor lee metadatos y bloques JSON-LD Schema.org; si no encuentra ofertas estructuradas, guarda texto de la página como candidato. No ejecuta JavaScript, no evade bloqueos y no garantiza detectar contenido que solo exista dentro de una app o detrás de autenticación.
+El intervalo permitido se limita a entre 30 minutos y 24 horas. Se consultan las URL oficiales configuradas en cada empresa. El extractor lee metadatos y bloques JSON-LD Schema.org. En páginas con varias bases y condiciones, separa encabezados de promociones para generar candidatos independientes; si no encuentra datos estructurados ni secciones promocionales reconocibles, solo conserva una página como candidata cuando detecta señales explícitas de oferta y beneficio. No ejecuta JavaScript, no evade bloqueos y no garantiza detectar contenido que solo exista dentro de una app o detrás de autenticación.
 
 Cada candidato se guarda como pendiente de revisión, con huella para evitar duplicados. El administrador debe verificar la publicación original y completar beneficio, condiciones y vigencia antes de publicarla. Las ofertas vencidas se excluyen del catálogo y pasan a estado vencido durante la siguiente ejecución de captura.
+
+
+### Cobertura real de fuentes oficiales
+
+Las fuentes no ofrecen el mismo nivel de acceso. Mostaza publica una página web de bases y condiciones que puede contener varias promociones; el extractor separa las secciones reconocibles de esa página, pero la revisión administrativa sigue siendo obligatoria. Burger King informa que los cupones de su aplicación requieren registro de usuario, por lo que el sitio público de términos no equivale a un feed público de cupones. Las promociones de McDonald's que aparecen dentro de su aplicación o contenido dinámico tampoco se pueden garantizar mediante una lectura HTML genérica. El sistema no debe intentar ingresar a cuentas personales, eludir controles ni inventar promociones cuando una fuente no expone los datos públicamente.
 
 ## OCR de imágenes y documentos
 
@@ -107,7 +112,7 @@ Sin estas variables se usa un clasificador local conservador basado en reglas. L
 
 La extracción genérica no reemplaza conectores específicos por marca. Las páginas oficiales pueden cambiar su estructura, cargar promociones dinámicamente o reservar información para sus aplicaciones. Para lograr cobertura completa y estable habrá que verificar y mantener los endpoints o selectores específicos de cada marca, respetando sus términos y límites de acceso. No se inventan ofertas ni se publica información sin aprobación.
 
-La app está en desarrollo. Antes de producción faltan migraciones versionadas de EF Core, pruebas automatizadas de integración y seguridad, configuración real de credenciales/servicios externos, revisión legal de la captura automatizada y pruebas de despliegue. El flujo OCR/IA necesita sus credenciales para operar con proveedores externos.
+La app está en desarrollo. Antes de producción faltan pruebas automatizadas más amplias de integración y seguridad, configuración real de credenciales/servicios externos, revisión legal de la captura automatizada y pruebas de despliegue. El flujo OCR/IA necesita sus credenciales para operar con proveedores externos.
 
 ## Estructura
 

@@ -13,6 +13,25 @@ namespace ProgIIICazador.Web.Controllers;
 [Route("AdminCapturas")]
 public class AdminCapturasController(OfertasDbContext db, IProveedorOCR ocr) : Controller
 {
+    private static bool TieneFirmaValida(IFormFile archivo)
+    {
+        var extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
+        Span<byte> header = stackalloc byte[8];
+        using var stream = archivo.OpenReadStream();
+        var read = stream.Read(header);
+        return extension switch
+        {
+            ".pdf" => read >= 5 && header[..5].SequenceEqual("%PDF-"u8),
+            ".png" => read >= 8 && header.SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }),
+            ".jpg" or ".jpeg" => read >= 3 && header[..3].SequenceEqual(new byte[] { 0xFF, 0xD8, 0xFF }),
+            _ => false
+        };
+    }
+
+    private static bool EsMismoDominio(Uri fuente, Uri oficial) =>
+        fuente.Host.Equals(oficial.Host, StringComparison.OrdinalIgnoreCase) ||
+        fuente.Host.EndsWith("." + oficial.Host, StringComparison.OrdinalIgnoreCase);
+
     [HttpGet("Subir")]
     public async Task<IActionResult> Subir()
     {
@@ -26,10 +45,21 @@ public class AdminCapturasController(OfertasDbContext db, IProveedorOCR ocr) : C
         ViewBag.Empresas = await db.Empresas.Where(e => e.Activa).OrderBy(e => e.Nombre).ToListAsync();
         if (archivo is null || archivo.Length == 0) ModelState.AddModelError("archivo", "Seleccioná un archivo.");
         if (archivo is not null && archivo.Length > 10_000_000) ModelState.AddModelError("archivo", "El archivo no puede superar los 10 MB.");
-        if (!Uri.TryCreate(urlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
-            ModelState.AddModelError("urlFuente", "Ingresá la URL HTTPS de la publicación oficial.");
-        if (!await db.Empresas.AnyAsync(e => e.Id == empresaId && e.Activa, cancellationToken))
+        if (archivo is not null && archivo.Length > 0 &&
+            !new[] { ".pdf", ".png", ".jpg", ".jpeg" }.Contains(Path.GetExtension(archivo.FileName), StringComparer.OrdinalIgnoreCase))
+            ModelState.AddModelError("archivo", "Formato no admitido. Subí un archivo PDF, PNG o JPG.");
+        else if (archivo is not null && archivo.Length > 0 && !TieneFirmaValida(archivo))
+            ModelState.AddModelError("archivo", "El contenido del archivo no coincide con un PDF, PNG o JPG válido.");
+        if (!Uri.TryCreate(urlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps ||
+            !string.IsNullOrEmpty(uri.UserInfo))
+            ModelState.AddModelError("urlFuente", "Ingresá una URL HTTPS válida de la publicación oficial.");
+        var empresa = await db.Empresas.AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == empresaId && e.Activa, cancellationToken);
+        if (empresa is null)
             ModelState.AddModelError("empresaId", "Seleccioná una empresa válida.");
+        else if (uri is not null && Uri.TryCreate(empresa.UrlOficial, UriKind.Absolute, out var oficial) &&
+                 !EsMismoDominio(uri, oficial))
+            ModelState.AddModelError("urlFuente", "La URL debe pertenecer al dominio oficial de la empresa seleccionada.");
         if (!ModelState.IsValid) return View();
         try
         {

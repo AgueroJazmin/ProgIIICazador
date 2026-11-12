@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
@@ -18,7 +19,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
     [AllowAnonymous, HttpGet]
     public IActionResult Login(string? returnUrl = null) { ViewBag.ReturnUrl = returnUrl; return View(); }
 
-    [AllowAnonymous, HttpPost, ValidateAntiForgeryToken]
+    [AllowAnonymous, HttpPost, ValidateAntiForgeryToken, EnableRateLimiting("login")]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
         if (!ModelState.IsValid) return View(model);
@@ -74,8 +75,19 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
     {
         var captura = await db.CapturasFuente.FirstOrDefaultAsync(c => c.Id == model.CapturaId);
         if (captura is null) return NotFound();
-        if (!Uri.TryCreate(model.UrlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+        if (!Uri.TryCreate(model.UrlFuente, UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(uri.UserInfo))
             ModelState.AddModelError(nameof(model.UrlFuente), "La fuente debe ser una dirección HTTPS válida.");
+        else
+        {
+            var empresa = await db.Empresas.AsNoTracking().FirstOrDefaultAsync(e => e.Id == captura.EmpresaId);
+            if (empresa is null || !Uri.TryCreate(empresa.UrlOficial, UriKind.Absolute, out var oficial) ||
+                !(uri.Host.Equals(oficial.Host, StringComparison.OrdinalIgnoreCase) ||
+                  uri.Host.EndsWith("." + oficial.Host, StringComparison.OrdinalIgnoreCase)))
+                ModelState.AddModelError(nameof(model.UrlFuente), "La fuente debe pertenecer al dominio oficial de la empresa de la captura.");
+        }
+        if (captura.Estado != EstadoCaptura.PendienteRevision)
+            return Conflict("Esta captura ya fue procesada o descartada.");
         if (model.VigenciaDesde.HasValue && model.VigenciaHasta.HasValue && model.VigenciaHasta.Value < model.VigenciaDesde.Value)
             ModelState.AddModelError(nameof(model.VigenciaHasta), "La fecha de fin no puede ser anterior al inicio.");
         if (model.Publicar && (string.IsNullOrWhiteSpace(model.Titulo) || string.IsNullOrWhiteSpace(model.Beneficio) || string.IsNullOrWhiteSpace(model.Condiciones)))
