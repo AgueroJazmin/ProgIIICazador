@@ -37,10 +37,21 @@ public sealed class ClasificadorIA(HttpClient http, IConfiguration configuration
         using var response = await http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
         using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
-        var content = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString()
-            ?? throw new InvalidOperationException("La IA no devolvió contenido.");
-        using var result = JsonDocument.Parse(content);
+        var responseRoot = doc.RootElement;
+        if (responseRoot.ValueKind != JsonValueKind.Object ||
+            !responseRoot.TryGetProperty("choices", out var choices) ||
+            choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
+            throw new InvalidOperationException("La API de IA no devolvió una respuesta con opciones.");
+        var message = choices[0];
+        if (!message.TryGetProperty("message", out var messageContent) ||
+            !messageContent.TryGetProperty("content", out var contentElement) ||
+            contentElement.ValueKind != JsonValueKind.String ||
+            string.IsNullOrWhiteSpace(contentElement.GetString()))
+            throw new InvalidOperationException("La API de IA no devolvió contenido JSON.");
+        using var result = JsonDocument.Parse(contentElement.GetString()!);
         var root = result.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+            throw new InvalidOperationException("La clasificación de IA no tiene el formato JSON esperado.");
         string? S(string name) => root.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
         decimal? N(string name) => root.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.Number && p.TryGetDecimal(out var n) ? n : null;
         DateTime? D(string name) => DateTime.TryParseExact(S(name), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : null;
