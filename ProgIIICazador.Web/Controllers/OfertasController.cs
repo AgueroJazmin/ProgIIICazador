@@ -25,7 +25,7 @@ public class OfertasController(OfertasDbContext db) : Controller
 
     public async Task<IActionResult> Details(int id)
     {
-        var today = DateTime.UtcNow.Date;
+        var today = DateTime.Today;
         var oferta = await db.Ofertas.AsNoTracking().Include(o => o.Empresa).Include(o => o.Beneficios)
             .FirstOrDefaultAsync(o => o.Id == id && o.Estado == EstadoOferta.Publicada
                 && (o.VigenciaDesde == null || o.VigenciaDesde <= today) && (o.VigenciaHasta == null || o.VigenciaHasta >= today));
