@@ -9,8 +9,14 @@ namespace ProgIIICazador.Web.Services.Captura;
 /// <summary>Lee páginas HTTPS oficiales, metadatos, JSON-LD y enlaces internos relacionados con promociones.</summary>
 public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
 {
+    private const int MaximoBytesRespuesta = 2 * 1024 * 1024;
+    private const int MaximasRedirecciones = 3;
+
     public async Task<IReadOnlyCollection<ResultadoExtraccion>> ExtraerAsync(Uri url, CancellationToken cancellationToken)
     {
+        if (!EsUrlSegura(url))
+            throw new HttpRequestException("La fuente debe ser una URL HTTPS pública y válida.");
+
         var results = new List<ResultadoExtraccion>();
         var rootHtml = await DescargarAsync(url, cancellationToken);
         results.AddRange(AnalizarPagina(url, rootHtml));
@@ -18,7 +24,7 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
             .Select(m => new { Href = WebUtility.HtmlDecode(m.Groups[1].Value).Trim(), Text = WebUtility.HtmlDecode(Regex.Replace(m.Groups[2].Value, "<[^>]+>", " ")).Trim() })
             .Where(x => Regex.IsMatch(x.Href + " " + x.Text, @"promo|oferta|beneficio|cup[oó]n|descuento|promocion", RegexOptions.IgnoreCase))
             .Select(x => Uri.TryCreate(url, x.Href, out var target) ? target : null)
-            .Where(x => x is not null && x.Scheme == Uri.UriSchemeHttps && x.Host.Equals(url.Host, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x is not null && EsMismoSitio(url, x))
             .DistinctBy(x => x!.AbsoluteUri).Take(12).ToList();
 
         foreach (var link in links)
@@ -38,14 +44,58 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
 
     private async Task<string> DescargarAsync(Uri url, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd("CazadorDeOfertasBot/1.0");
-        using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        if (response.StatusCode == HttpStatusCode.TooManyRequests)
-            throw new HttpRequestException("La fuente solicitó reducir la frecuencia de consultas.");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync(cancellationToken);
+        var actual = url;
+        for (var intento = 0; intento <= MaximasRedirecciones; intento++)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, actual);
+            request.Headers.UserAgent.ParseAdd("CazadorDeOfertasBot/1.0");
+            using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+            if ((int)response.StatusCode is >= 300 and < 400)
+            {
+                if (intento == MaximasRedirecciones || response.Headers.Location is null)
+                    throw new HttpRequestException("La fuente realizó demasiadas redirecciones o devolvió una redirección incompleta.");
+                var destino = response.Headers.Location.IsAbsoluteUri
+                    ? response.Headers.Location
+                    : new Uri(actual, response.Headers.Location);
+                if (!EsMismoSitio(url, destino))
+                    throw new HttpRequestException("Se bloqueó una redirección fuera del dominio oficial.");
+                actual = destino;
+                continue;
+            }
+
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                throw new HttpRequestException("La fuente solicitó reducir la frecuencia de consultas.");
+            response.EnsureSuccessStatusCode();
+            if (response.Content.Headers.ContentLength > MaximoBytesRespuesta)
+                throw new HttpRequestException("La página supera el tamaño máximo permitido para la captura.");
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var buffer = new MemoryStream();
+            var chunk = new byte[81920];
+            int read;
+            while ((read = await stream.ReadAsync(chunk, cancellationToken)) > 0)
+            {
+                if (buffer.Length + read > MaximoBytesRespuesta)
+                    throw new HttpRequestException("La página supera el tamaño máximo permitido para la captura.");
+                await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken);
+            }
+            return Encoding.UTF8.GetString(buffer.GetBuffer(), 0, checked((int)buffer.Length));
+        }
+
+        throw new HttpRequestException("No se pudo completar la descarga de la fuente oficial.");
     }
+
+    private static bool EsUrlSegura(Uri uri) =>
+        uri.IsAbsoluteUri && uri.Scheme == Uri.UriSchemeHttps &&
+        string.IsNullOrEmpty(uri.UserInfo) && uri.Port == 443 &&
+        !IPAddress.TryParse(uri.Host, out _) &&
+        !uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
+
+    private static bool EsMismoSitio(Uri origen, Uri destino) =>
+        EsUrlSegura(destino) &&
+        (destino.Host.Equals(origen.Host, StringComparison.OrdinalIgnoreCase) ||
+         destino.Host.EndsWith("." + origen.Host, StringComparison.OrdinalIgnoreCase));
 
     private static IReadOnlyCollection<ResultadoExtraccion> AnalizarPagina(Uri url, string html)
     {
@@ -77,8 +127,6 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
             var sections = SeparadorSeccionesPromocionales.Separar(html);
             if (sections.Count > 0)
             {
-                // Cuando hay bases individuales, estas son más útiles que un JSON-LD genérico
-                // o el texto completo de la página. Se evita guardar una página como una sola oferta.
                 results.Clear();
                 foreach (var section in sections)
                     results.Add(Build(url, section.Titulo, section.Texto, null));
