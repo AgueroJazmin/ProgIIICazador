@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
+using ProgIIICazador.Web.Modules.Administracion.ViewModels;
 using ProgIIICazador.Web.Services.Captura;
 using ProgIIICazador.Web.Services.Procesamiento;
 
