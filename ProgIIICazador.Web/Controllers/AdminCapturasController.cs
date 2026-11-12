@@ -26,8 +26,12 @@ public class AdminCapturasController(OfertasDbContext db, IProveedorOCR ocr) : C
         ViewBag.Empresas = await db.Empresas.Where(e => e.Activa).OrderBy(e => e.Nombre).ToListAsync();
         if (archivo is null || archivo.Length == 0) ModelState.AddModelError("archivo", "Seleccioná un archivo.");
         if (archivo is not null && archivo.Length > 10_000_000) ModelState.AddModelError("archivo", "El archivo no puede superar los 10 MB.");
-        if (!Uri.TryCreate(urlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
-            ModelState.AddModelError("urlFuente", "Ingresá la URL HTTPS de la publicación oficial.");
+        if (archivo is not null && archivo.Length > 0 &&
+            !new[] { ".pdf", ".png", ".jpg", ".jpeg" }.Contains(Path.GetExtension(archivo.FileName), StringComparer.OrdinalIgnoreCase))
+            ModelState.AddModelError("archivo", "Formato no admitido. Subí un archivo PDF, PNG o JPG.");
+        if (!Uri.TryCreate(urlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps ||
+            !string.IsNullOrEmpty(uri.UserInfo))
+            ModelState.AddModelError("urlFuente", "Ingresá una URL HTTPS válida de la publicación oficial.");
         if (!await db.Empresas.AnyAsync(e => e.Id == empresaId && e.Activa, cancellationToken))
             ModelState.AddModelError("empresaId", "Seleccioná una empresa válida.");
         if (!ModelState.IsValid) return View();
