@@ -73,7 +73,18 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
             catch (JsonException) { }
         }
         if (results.Count == 0 && !string.IsNullOrWhiteSpace(text))
-            results.Add(Build(url, title, text[..Math.Min(text.Length, 12000)], null));
+        {
+            var sections = SeparadorSeccionesPromocionales.Separar(html);
+            if (sections.Count > 0)
+            {
+                foreach (var section in sections)
+                    results.Add(Build(url, section.Titulo, section.Texto, null));
+            }
+            else
+            {
+                results.Add(Build(url, title, text[..Math.Min(text.Length, 12000)], null));
+            }
+        }
         return results;
     }
 
