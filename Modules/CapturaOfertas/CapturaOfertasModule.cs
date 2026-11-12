@@ -10,7 +10,12 @@ public static class CapturaOfertasModule
         IConfiguration configuration)
     {
         services.AddHttpClient<IExtractorFuente, ExtractorWebOficial>(client =>
-            client.Timeout = TimeSpan.FromSeconds(25));
+            client.Timeout = TimeSpan.FromSeconds(25))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                // Las redirecciones se validan en el extractor para impedir salir del dominio oficial.
+                AllowAutoRedirect = false
+            });
         services.AddScoped<ServicioCaptura>();
 
         if (configuration.GetValue<bool>("Captura:Habilitada"))
