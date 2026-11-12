@@ -38,6 +38,17 @@ public class ModulosTests
     }
 
     [Fact]
+    public void ElSnapshotDeMigracionesCoincideConElModeloActual()
+    {
+        var options = new DbContextOptionsBuilder<OfertasDbContext>()
+            .UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=ModeloTest;Trusted_Connection=True")
+            .Options;
+        using var db = new OfertasDbContext(options);
+
+        Assert.False(db.Database.HasPendingModelChanges());
+    }
+
+    [Fact]
     public void LaMigracionInicialEstaDisponibleParaEFCore()
     {
         var options = new DbContextOptionsBuilder<OfertasDbContext>()
