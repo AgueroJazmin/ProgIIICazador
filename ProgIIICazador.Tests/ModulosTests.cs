@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using ProgIIICazador.Web.Data;
+using ProgIIICazador.Web.Models;
 using ProgIIICazador.Web.Modules.GestionOfertas;
 using ProgIIICazador.Web.Services.Procesamiento;
 using Xunit;
@@ -24,7 +27,7 @@ public class ModulosTests
     public void LasColumnasIndexadasTienenLongitudCompatibleConSqlServer()
     {
         var options = new DbContextOptionsBuilder<OfertasDbContext>()
-            .UseSqlServer("Server=(localdb)\\\\mssqllocaldb;Database=ModeloTest;Trusted_Connection=True")
+            .UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=ModeloTest;Trusted_Connection=True")
             .Options;
         using var db = new OfertasDbContext(options);
 
