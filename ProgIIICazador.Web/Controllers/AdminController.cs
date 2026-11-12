@@ -94,7 +94,13 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
             ModelState.AddModelError(nameof(model.VigenciaHasta), "La fecha de fin no puede ser anterior al inicio.");
         if (model.Publicar && (string.IsNullOrWhiteSpace(model.Titulo) || string.IsNullOrWhiteSpace(model.Beneficio) || string.IsNullOrWhiteSpace(model.Condiciones)))
             ModelState.AddModelError(string.Empty, "Para publicar, completá y verificá el título, el beneficio y sus condiciones.");
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+        {
+            // Mantener los datos de clasificación al volver a mostrar el formulario con errores.
+            ViewBag.Confianza = captura.ConfianzaClasificacion;
+            ViewBag.EsOferta = captura.EsOfertaDetectada;
+            return View(model);
+        }
         if (model.Publicar)
         {
             var oferta = await db.Ofertas.Include(o => o.Beneficios)
