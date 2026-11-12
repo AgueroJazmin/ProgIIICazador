@@ -34,7 +34,7 @@ public sealed class InitialCreate : Migration
                 Titulo = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: false),
                 Descripcion = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
                 Beneficio = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                Condiciones = table.Column<string>(type: "nvarchar(6000)", maxLength: 6000, nullable: false),
+                Condiciones = table.Column<string>(type: "nvarchar(max)", maxLength: 6000, nullable: false),
                 VigenciaDesde = table.Column<DateTime>(type: "datetime2", nullable: true),
                 VigenciaHasta = table.Column<DateTime>(type: "datetime2", nullable: true),
                 UrlFuente = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
