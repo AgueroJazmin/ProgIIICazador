@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using ProgIIICazador.Web.Data;
@@ -35,6 +37,23 @@ public class ModulosTests
         Assert.Equal(80, db.Model.FindEntityType(typeof(Empresa))!.FindProperty(nameof(Empresa.Slug))!.GetMaxLength());
         Assert.Equal(64, db.Model.FindEntityType(typeof(Oferta))!.FindProperty(nameof(Oferta.HuellaContenido))!.GetMaxLength());
         Assert.Equal(64, db.Model.FindEntityType(typeof(CapturaFuente))!.FindProperty(nameof(CapturaFuente.HuellaContenido))!.GetMaxLength());
+    }
+
+    [Fact]
+    public void ElSnapshotDeMigracionesCoincideConElModeloActual()
+    {
+        var options = new DbContextOptionsBuilder<OfertasDbContext>()
+            .UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=ModeloTest;Trusted_Connection=True")
+            .Options;
+        using var db = new OfertasDbContext(options);
+        var snapshot = db.GetService<IMigrationsAssembly>().ModelSnapshot!;
+        var initializer = db.GetService<IModelRuntimeInitializer>();
+        var snapshotModel = initializer.Initialize(snapshot.Model, designTime: true);
+        var differ = db.GetService<IMigrationsModelDiffer>();
+        var currentModel = db.GetService<IDesignTimeModel>().Model;
+        var differences = differ.GetDifferences(snapshotModel.GetRelationalModel(), currentModel.GetRelationalModel());
+
+        Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences.Select(operation => operation.GetType().Name + ": " + operation)));
     }
 
     [Fact]
