@@ -41,7 +41,7 @@ public class ModulosTests
     public void ElSnapshotDeMigracionesCoincideConElModeloActual()
     {
         var options = new DbContextOptionsBuilder<OfertasDbContext>()
-            .UseSqlServer("Server=(localdb)\\\\mssqllocaldb;Database=ModeloTest;Trusted_Connection=True")
+            .UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=ModeloTest;Trusted_Connection=True")
             .Options;
         using var db = new OfertasDbContext(options);
 
