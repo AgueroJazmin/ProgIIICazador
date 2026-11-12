@@ -19,7 +19,7 @@ public sealed class ClasificadorReglas : IClasificadorOfertas
             RegexOptions.IgnoreCase);
         // Un precio aislado no demuestra que exista una promoción.
         var isOffer = hasPromotionContext;
-        var type = percentage.HasValue ? "Porcentaje" : amount.HasValue ? "Importe" : isOffer ? "Beneficio" : null;
+        var type = !isOffer ? null : percentage.HasValue ? "Porcentaje" : amount.HasValue ? "Importe" : "Beneficio";
         return Task.FromResult(new ResultadoClasificacion(isOffer, null, null, text.Length > 3000 ? text[..3000] : text, null, null, percentage, amount, type, isOffer ? 0.35m : 0.10m, "Clasificación automática preliminar; verificar contra la fuente oficial."));
     }
 }
