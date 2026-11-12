@@ -1,0 +1,7 @@
+@model IEnumerable<Reporte>
+@{ ViewData["Title"] = "Reportes de usuarios"; }
+<h1 class="h2">Reportes recibidos</h1><a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">Volver al panel</a>
+@if (!Model.Any()) { <p class="text-muted">No hay reportes registrados.</p> } else {
+<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Oferta</th><th>Motivo</th><th>Detalle</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr></thead><tbody>
+@foreach (var r in Model) { <tr><td>@r.Oferta?.Empresa?.Nombre — @r.Oferta?.Titulo</td><td>@r.Motivo</td><td>@r.Detalle</td><td>@r.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy")</td><td>@r.Estado</td><td>@if (r.Estado == EstadoReporte.Pendiente || r.Estado == EstadoReporte.EnRevision) { <form asp-action="ResolverReporte" method="post" class="d-flex gap-1"><input type="hidden" name="id" value="@r.Id" /><button name="estado" value="Resuelto" class="btn btn-sm btn-success">Resolver</button><button name="estado" value="Descartado" class="btn btn-sm btn-outline-secondary">Descartar</button></form> }</td></tr> }
+</tbody></table></div> }

@@ -1,0 +1,13 @@
+@model Oferta
+@{ ViewData["Title"] = Model.Titulo; }
+<a asp-action="Index" class="link-secondary text-decoration-none">← Volver a las ofertas</a>
+<article class="card mt-3"><div class="card-body p-4">
+<span class="badge text-bg-secondary mb-2">@Model.Empresa?.Nombre</span><h1 class="h2">@Model.Titulo</h1><p class="lead">@Model.Beneficio</p><hr />
+<h2 class="h5">Descripción</h2><p>@Model.Descripcion</p>
+@if (Model.Beneficios.Any()) { <h2 class="h5">Detalle del beneficio</h2><ul>@foreach(var b in Model.Beneficios){<li><strong>@b.Tipo:</strong> @b.Descripcion @if(b.TopeReintegro.HasValue){<span>(Tope: @b.TopeReintegro.Value.ToString("C"))</span>}</li>}</ul> }
+<h2 class="h5">Condiciones</h2><p>@(string.IsNullOrWhiteSpace(Model.Condiciones) ? "Consultar condiciones en la publicación original." : Model.Condiciones)</p>
+<p><strong>Vigencia:</strong> @(Model.VigenciaDesde?.ToString("dd/MM/yyyy") ?? "No informada") al @(Model.VigenciaHasta?.ToString("dd/MM/yyyy") ?? "No informada")</p>
+<p class="small text-muted">Última verificación: @Model.UltimaVerificacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+<a class="btn btn-dark" href="@Model.UrlFuente" target="_blank" rel="noopener noreferrer">Consultar publicación original</a>
+<a class="btn btn-outline-secondary" asp-controller="Reportes" asp-action="Create" asp-route-ofertaId="@Model.Id">Reportar un problema</a>
+</div></article>

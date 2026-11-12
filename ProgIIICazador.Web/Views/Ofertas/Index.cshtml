@@ -1,0 +1,17 @@
+@model IEnumerable<Oferta>
+@{
+    ViewData["Title"] = "Ofertas";
+    var marcas = ViewBag.Marcas as IEnumerable<Empresa> ?? Enumerable.Empty<Empresa>();
+}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4"><div><h1 class="h2 mb-1">Ofertas disponibles</h1><p class="text-muted mb-0">Información publicada y revisada desde fuentes oficiales.</p></div></div>
+<form method="get" class="row g-2 mb-4">
+<div class="col-md-4"><label class="form-label" for="marca">Empresa</label><select class="form-select" id="marca" name="marca"><option value="">Todas</option>@foreach (var m in marcas) { <option value="@m.Slug" selected="@(ViewBag.MarcaSeleccionada as string == m.Slug)">@m.Nombre</option> }</select></div>
+<div class="col-md-6"><label class="form-label" for="buscar">Buscar</label><input class="form-control" id="buscar" name="buscar" value="@ViewBag.Busqueda" placeholder="Título, beneficio o condición" /></div>
+<div class="col-md-2 d-flex align-items-end"><button class="btn btn-dark w-100" type="submit">Buscar</button></div></form>
+@if (!Model.Any()) { <div class="alert alert-info">Todavía no hay ofertas publicadas que coincidan con la búsqueda.</div> }
+else { <div class="row g-3">@foreach (var oferta in Model) { <div class="col-md-6 col-xl-4"><article class="card h-100 shadow-sm"><div class="card-body">
+<span class="badge text-bg-secondary mb-2">@oferta.Empresa?.Nombre</span><h2 class="h5">@oferta.Titulo</h2><p>@oferta.Beneficio</p>
+@if (oferta.Beneficios.Any()) { <ul class="small">@foreach(var b in oferta.Beneficios){<li>@b.Tipo: @b.Descripcion</li>}</ul> }
+@if (oferta.VigenciaHasta.HasValue) { <p class="small text-muted">Válida hasta @oferta.VigenciaHasta.Value.ToString("dd/MM/yyyy")</p> }
+<a class="btn btn-outline-dark" asp-action="Details" asp-route-id="@oferta.Id">Ver condiciones</a>
+</div></article></div> }</div> }

@@ -1,0 +1,17 @@
+@model IEnumerable<CapturaFuente>
+@{ ViewData["Title"] = "Administración"; }
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><h1 class="h2">Administración</h1>
+<form asp-action="Logout" method="post"><button class="btn btn-outline-secondary">Cerrar sesión</button></form></div>
+<div class="row g-3 my-2">
+<div class="col-md-4"><div class="card card-body"><span class="text-muted">Capturas pendientes</span><strong class="fs-3">@ViewBag.Pendientes</strong></div></div>
+<div class="col-md-4"><div class="card card-body"><span class="text-muted">Reportes pendientes</span><strong class="fs-3">@ViewBag.Reportes</strong></div></div>
+<div class="col-md-4"><div class="card card-body"><span class="text-muted">Ofertas registradas</span><strong class="fs-3">@ViewBag.Ofertas</strong></div></div>
+</div>
+@if (TempData["CapturaResultado"] is string mensaje) { <div class="alert alert-info">@mensaje</div> }
+@if (TempData["OcrResultado"] is string ocr) { <div class="alert alert-info">@ocr</div> }
+<div class="d-flex gap-2 my-3 flex-wrap"><form asp-action="EjecutarCaptura" method="post"><button class="btn btn-dark">Ejecutar captura ahora</button></form><a asp-controller="AdminCapturas" asp-action="Subir" class="btn btn-outline-dark">Procesar imagen o documento (OCR)</a><a asp-action="Reportes" class="btn btn-outline-dark">Ver reportes</a></div>
+<h2 class="h4 mt-4">Contenido detectado para revisión</h2>
+@if (!Model.Any()) { <p class="text-muted">No hay capturas pendientes.</p> } else {
+<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Empresa</th><th>Título detectado</th><th>Fecha</th><th>Fuente</th><th></th></tr></thead><tbody>
+@foreach (var item in Model) { <tr><td>@item.Empresa?.Nombre</td><td>@(item.TituloDetectado ?? "Sin título")</td><td>@item.FechaCapturaUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td><td><a href="@item.Url" target="_blank" rel="noopener">Abrir</a></td><td><a asp-action="Revisar" asp-route-id="@item.Id" class="btn btn-sm btn-outline-dark">Revisar</a></td></tr> }
+</tbody></table></div> }
