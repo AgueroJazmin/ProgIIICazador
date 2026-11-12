@@ -41,12 +41,62 @@ public class ExtractorWebOficialTests
         Assert.Empty(results);
     }
 
-    private static ExtractorWebOficial CrearExtractor(string html) =>
-        new(new HttpClient(new RespuestaHtmlHandler(html)));
+    [Fact]
+    public async Task BloqueaRedireccionesFueraDelDominioOriginal()
+    {
+        var extractor = new ExtractorWebOficial(new HttpClient(new DelegadoHandler(_ =>
+            new HttpResponseMessage(HttpStatusCode.Redirect)
+            {
+                Headers = { Location = new Uri("https://sitio-ajeno.example/robo") }
+            })));
 
-    private sealed class RespuestaHtmlHandler(string html) : HttpMessageHandler
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            extractor.ExtraerAsync(new Uri("https://oficial.example/promos"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task BloqueaRespuestasQueSuperanElLimiteDeTamano()
+    {
+        var extractor = new ExtractorWebOficial(new HttpClient(new DelegadoHandler(_ =>
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(new string('x', 2 * 1024 * 1024 + 1))
+            })));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            extractor.ExtraerAsync(new Uri("https://oficial.example/promos"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task SigueRedireccionesDentroDelMismoDominio()
+    {
+        var requests = 0;
+        var extractor = new ExtractorWebOficial(new HttpClient(new DelegadoHandler(_ =>
+        {
+            requests++;
+            return requests == 1
+                ? new HttpResponseMessage(HttpStatusCode.Redirect)
+                {
+                    Headers = { Location = new Uri("/destino", UriKind.Relative) }
+                }
+                : new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("<html><head><title>Menú</title></head><body>Sin promociones.</body></html>")
+                };
+        })));
+
+        var results = await extractor.ExtraerAsync(new Uri("https://oficial.example/promos"), CancellationToken.None);
+
+        Assert.Empty(results);
+        Assert.Equal(2, requests);
+    }
+
+    private static ExtractorWebOficial CrearExtractor(string html) =>
+        new(new HttpClient(new DelegadoHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(html) })));
+
+    private sealed class DelegadoHandler(Func<HttpRequestMessage, HttpResponseMessage> responder) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(html) });
+            Task.FromResult(responder(request));
     }
 }
