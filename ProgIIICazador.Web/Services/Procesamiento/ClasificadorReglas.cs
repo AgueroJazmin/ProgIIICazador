@@ -18,7 +18,7 @@ public sealed class ClasificadorReglas : IClasificadorOfertas
             @"\b(beneficio|descuento|reintegro|promo(?:ción)?|cup[oó]n|bonificaci[oó]n|ahorro|2\s*x\s*1)\b",
             RegexOptions.IgnoreCase);
         // Un precio aislado no demuestra que exista una promoción.
-        var isOffer = hasPromotionContext && (percentage.HasValue || amount.HasValue || hasPromotionContext);
+        var isOffer = hasPromotionContext;
         var type = percentage.HasValue ? "Porcentaje" : amount.HasValue ? "Importe" : isOffer ? "Beneficio" : null;
         return Task.FromResult(new ResultadoClasificacion(isOffer, null, null, text.Length > 3000 ? text[..3000] : text, null, null, percentage, amount, type, isOffer ? 0.35m : 0.10m, "Clasificación automática preliminar; verificar contra la fuente oficial."));
     }
