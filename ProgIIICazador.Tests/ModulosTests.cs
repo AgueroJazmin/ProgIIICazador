@@ -46,7 +46,7 @@ public class ModulosTests
         using var db = new OfertasDbContext(options);
 
         Assert.Contains("20261112010000_InitialCreate", db.Database.GetMigrations());
-        var script = db.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>().GenerateScript();
+        var script = db.Database.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>().GenerateScript();
         Assert.Contains("CREATE TABLE [Empresas]", script);
         Assert.Contains("CREATE TABLE [Ofertas]", script);
         Assert.Contains("CREATE TABLE [CapturasFuente]", script);
