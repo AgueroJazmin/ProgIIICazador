@@ -31,7 +31,7 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
                 var html = await DescargarAsync(link, cancellationToken);
                 results.AddRange(AnalizarPagina(link, html));
             }
-            catch (HttpRequestException ex) { /* Un enlace caído no impide procesar el resto del sitio oficial. */ }
+            catch (HttpRequestException) { /* Un enlace caído no impide procesar el resto del sitio oficial. */ }
         }
         return results;
     }
