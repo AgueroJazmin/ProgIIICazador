@@ -94,10 +94,10 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
     private static bool PareceContenerOferta(string text)
     {
         var tieneContextoPromocional = Regex.IsMatch(text,
-            @"\b(promoci[oó]n|oferta|descuento|reintegro|cup[oó]n|2\s*x\s*1)\\b",
+            @"\b(promoci[oó]n|oferta|descuento|reintegro|cup[oó]n|2\s*x\s*1)\b",
             RegexOptions.IgnoreCase);
         var tieneBeneficio = Regex.IsMatch(text,
-            @"\b(descuento|reintegro|ahorro|beneficio|cup[oó]n|bonificaci[oó]n|gratis|2\s*x\s*1)\\b",
+            @"\b(descuento|reintegro|ahorro|beneficio|cup[oó]n|bonificaci[oó]n|gratis|2\s*x\s*1)\b",
             RegexOptions.IgnoreCase);
         return tieneContextoPromocional && tieneBeneficio;
     }
