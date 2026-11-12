@@ -110,15 +110,14 @@ public sealed class InitialCreate : Migration
                 table.ForeignKey("FK_Reportes_Ofertas_OfertaId", x => x.OfertaId, "Ofertas", "Id", onDelete: ReferentialAction.Cascade);
             });
 
-        migrationBuilder.InsertData(
-            table: "Empresas",
-            columns: new[] { "Id", "Activa", "Nombre", "Slug", "UrlOficial" },
-            values: new object[,]
-            {
-                { 1, true, "McDonald's", "mcdonalds", "https://www.mcdonalds.com.ar" },
-                { 2, true, "Burger King", "burger-king", "https://www.burgerking.com.ar/es/terminos-y-condiciones" },
-                { 3, true, "Mostaza", "mostaza", "https://www.mostazaweb.com.ar/bases-y-condiciones-promos/" }
-            });
+        migrationBuilder.Sql("""
+            SET IDENTITY_INSERT [Empresas] ON;
+            INSERT INTO [Empresas] ([Id], [Activa], [Nombre], [Slug], [UrlOficial]) VALUES
+                (1, 1, N'McDonald''s', N'mcdonalds', N'https://www.mcdonalds.com.ar'),
+                (2, 1, N'Burger King', N'burger-king', N'https://www.burgerking.com.ar/es/terminos-y-condiciones'),
+                (3, 1, N'Mostaza', N'mostaza', N'https://www.mostazaweb.com.ar/bases-y-condiciones-promos/');
+            SET IDENTITY_INSERT [Empresas] OFF;
+            """);
 
         migrationBuilder.CreateIndex("IX_Empresas_Slug", "Empresas", "Slug", unique: true);
         migrationBuilder.CreateIndex("IX_Ofertas_EmpresaId", "Ofertas", "EmpresaId");
