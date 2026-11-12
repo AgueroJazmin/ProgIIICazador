@@ -14,12 +14,26 @@ Aplicación web ASP.NET Core MVC para centralizar promociones publicadas por McD
 
 ## Ejecutar en desarrollo
 
-Requisitos: .NET 10 SDK, SQL Server LocalDB y Visual Studio 2026 o Visual Studio Code.
+Requisitos: Visual Studio 2026 con la carga de trabajo **Desarrollo de ASP.NET y web**, SDK de .NET 10 y SQL Server LocalDB.
+
+### Desde Visual Studio 2026
+
+1. Cloná o descargá este repositorio.
+2. Abrí el archivo **ProgIIICazador.sln**.
+3. Si Visual Studio no selecciona el proyecto automáticamente, hacé clic derecho sobre **ProgIIICazador.Web** y elegí **Establecer como proyecto de inicio**.
+4. Verificá que el perfil **ProgIIICazador.Web** esté seleccionado y ejecutá con **F5**.
+5. La aplicación abre la página de inicio en el navegador. El perfil local desactiva la captura automática al iniciar para que puedas probar primero la interfaz sin depender de las páginas externas.
+
+La base de datos local se crea en el primer inicio si no existe. Para que funcione la conexión predeterminada, necesitás tener SQL Server LocalDB instalado.
+
+### Desde una terminal
 
 ```bash
 dotnet restore ProgIIICazador.Web/ProgIIICazador.Web.csproj
 dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
 ```
+
+Para iniciar desde Visual Studio o desde la terminal, el proyecto web utiliza el perfil local configurado en `ProgIIICazador.Web/Properties/launchSettings.json`.
 
 Para ejecutar las pruebas unitarias:
 
@@ -46,7 +60,7 @@ $env:Admin__Contrasena = "CAMBIAR_POR_UNA_CLAVE_SEGURA"
 dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
 ```
 
-El panel se abre desde Administración. Las rutas administrativas usan autenticación por cookie, HTTPS, autorización por rol y protección antifalsificación en los formularios.
+El panel se abre desde Administración. Las rutas administrativas usan autenticación por cookie, HTTPS, autorización por rol y protección antifalsificación en los formularios. Si ejecutás desde Visual Studio, configurá las variables en el perfil de depuración o en la terminal antes de iniciar la aplicación. No se incluye una contraseña predeterminada.
 
 ## Captura automática
 
