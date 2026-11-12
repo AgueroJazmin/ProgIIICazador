@@ -10,6 +10,8 @@ namespace ProgIIICazador.Web.Migrations;
 [DbContext(typeof(ProgIIICazador.Web.Data.OfertasDbContext))]
 public sealed class OfertasDbContextModelSnapshot : ModelSnapshot
 {
+    internal void BuildModelForMigration(ModelBuilder modelBuilder) => BuildModel(modelBuilder);
+
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
         modelBuilder.HasAnnotation("ProductVersion", "10.0.0")
