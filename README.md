@@ -114,6 +114,8 @@ La extracción genérica no reemplaza conectores específicos por marca. Las pá
 
 La app está en desarrollo. Antes de producción faltan pruebas automatizadas más amplias de integración y seguridad, configuración real de credenciales/servicios externos, revisión legal de la captura automatizada y pruebas de despliegue. El flujo OCR/IA necesita sus credenciales para operar con proveedores externos.
 
-## Estructura
+## Estructura y arquitectura
 
-Monolito modular organizado en CapturaOfertas, GestionOfertas, ConsultaOfertas y ReportesOfertas, con vertical slices para incorporación/procesamiento/actualización, consulta y reportes.
+La solución está en proceso de reorganización hacia un monolito modular. Los controladores y servicios ya separados se agrupan bajo `Modules/`; el proyecto web incluye esa carpeta mediante una regla explícita del `.csproj`. Los modelos de dominio y el `OfertasDbContext` todavía permanecen en `ProgIIICazador.Web/Models` y `ProgIIICazador.Web/Data`, respectivamente, porque hoy existen relaciones entre módulos y una única configuración de persistencia/migraciones. No se consideran módulos completamente aislados todavía.
+
+Consultá [la guía de arquitectura](docs/arquitectura.md) para conocer las responsabilidades actuales, las dependencias compartidas y los próximos pasos de la reorganización.
