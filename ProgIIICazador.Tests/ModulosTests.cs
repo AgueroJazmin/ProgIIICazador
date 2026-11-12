@@ -53,7 +53,10 @@ public class ModulosTests
         var currentModel = db.GetService<IDesignTimeModel>().Model;
         var differences = differ.GetDifferences(snapshotModel.GetRelationalModel(), currentModel.GetRelationalModel());
 
-        Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences.Select(operation => operation.GetType().Name + ": " + operation)));
+        Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences.Select(operation =>
+            operation is Microsoft.EntityFrameworkCore.Migrations.Operations.AlterColumnOperation alter
+                ? $"AlterColumn {alter.Table}.{alter.Name}: actual={alter.ColumnType}, nullable={alter.IsNullable}, maxLength={alter.MaxLength}; snapshotAnterior={alter.OldColumn.ColumnType}, nullable={alter.OldColumn.IsNullable}, maxLength={alter.OldColumn.MaxLength}"
+                : operation.GetType().Name + ": " + operation)));
     }
 
     [Fact]
