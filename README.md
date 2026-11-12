@@ -41,7 +41,7 @@ Para ejecutar las pruebas unitarias:
 dotnet test ProgIIICazador.Tests/ProgIIICazador.Tests.csproj
 ```
 
-En el primer arranque se crea la base de datos si no existe mediante EnsureCreated. Esta inicialización sirve para una instalación nueva de prueba; no reemplaza migraciones de EF Core para actualizar una base existente ni debe usarse como estrategia de despliegue productivo. Si ya existe una base creada con una versión anterior del modelo, respaldá los datos y recreá la base local antes de probar esta versión.
+La aplicación aplica las migraciones versionadas de EF Core al iniciar y crea la base de datos si todavía no existe. La migración inicial está en `ProgIIICazador.Web/Migrations` e incluye las tres empresas iniciales. Si ya tenías una base creada con una versión anterior mediante `EnsureCreated`, EF Core no puede convertirla automáticamente en una base administrada por migraciones: respaldá los datos y recreá únicamente la base local de desarrollo antes de ejecutar esta versión. No uses ese procedimiento sobre una base con datos que quieras conservar.
 
 La cadena de conexión está en `ConnectionStrings:OfertasDb`. Para otro SQL Server, reemplazá el valor mediante configuración o variables de entorno.
 
@@ -112,7 +112,7 @@ Sin estas variables se usa un clasificador local conservador basado en reglas. L
 
 La extracción genérica no reemplaza conectores específicos por marca. Las páginas oficiales pueden cambiar su estructura, cargar promociones dinámicamente o reservar información para sus aplicaciones. Para lograr cobertura completa y estable habrá que verificar y mantener los endpoints o selectores específicos de cada marca, respetando sus términos y límites de acceso. No se inventan ofertas ni se publica información sin aprobación.
 
-La app está en desarrollo. Antes de producción faltan migraciones versionadas de EF Core, pruebas automatizadas de integración y seguridad, configuración real de credenciales/servicios externos, revisión legal de la captura automatizada y pruebas de despliegue. El flujo OCR/IA necesita sus credenciales para operar con proveedores externos.
+La app está en desarrollo. Antes de producción faltan pruebas automatizadas más amplias de integración y seguridad, configuración real de credenciales/servicios externos, revisión legal de la captura automatizada y pruebas de despliegue. El flujo OCR/IA necesita sus credenciales para operar con proveedores externos.
 
 ## Estructura
 
