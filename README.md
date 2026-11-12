@@ -66,9 +66,14 @@ La captura periódica queda habilitada por defecto, con una consulta inicial al 
 $env:Captura__IntervaloMinutos = "360"
 ```
 
-El intervalo permitido se limita a entre 30 minutos y 24 horas. Se consultan las URL oficiales configuradas en cada empresa. El extractor lee metadatos y bloques JSON-LD Schema.org; si no encuentra ofertas estructuradas, guarda texto de la página como candidato. No ejecuta JavaScript, no evade bloqueos y no garantiza detectar contenido que solo exista dentro de una app o detrás de autenticación.
+El intervalo permitido se limita a entre 30 minutos y 24 horas. Se consultan las URL oficiales configuradas en cada empresa. El extractor lee metadatos y bloques JSON-LD Schema.org. En páginas con varias bases y condiciones, separa encabezados de promociones para generar candidatos independientes; si no encuentra datos estructurados ni secciones promocionales reconocibles, solo conserva una página como candidata cuando detecta señales explícitas de oferta y beneficio. No ejecuta JavaScript, no evade bloqueos y no garantiza detectar contenido que solo exista dentro de una app o detrás de autenticación.
 
 Cada candidato se guarda como pendiente de revisión, con huella para evitar duplicados. El administrador debe verificar la publicación original y completar beneficio, condiciones y vigencia antes de publicarla. Las ofertas vencidas se excluyen del catálogo y pasan a estado vencido durante la siguiente ejecución de captura.
+
+
+### Cobertura real de fuentes oficiales
+
+Las fuentes no ofrecen el mismo nivel de acceso. Mostaza publica una página web de bases y condiciones que puede contener varias promociones; el extractor separa las secciones reconocibles de esa página, pero la revisión administrativa sigue siendo obligatoria. Burger King informa que los cupones de su aplicación requieren registro de usuario, por lo que el sitio público de términos no equivale a un feed público de cupones. Las promociones de McDonald's que aparecen dentro de su aplicación o contenido dinámico tampoco se pueden garantizar mediante una lectura HTML genérica. El sistema no debe intentar ingresar a cuentas personales, eludir controles ni inventar promociones cuando una fuente no expone los datos públicamente.
 
 ## OCR de imágenes y documentos
 
