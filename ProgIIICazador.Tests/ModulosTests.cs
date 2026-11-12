@@ -50,7 +50,7 @@ public class ModulosTests
         var initializer = db.GetService<IModelRuntimeInitializer>();
         var initializedSnapshot = initializer.Initialize(snapshot.Model, designTime: true);
         var differ = db.GetService<IMigrationsModelDiffer>();
-        var differences = differ.GetDifferences(initializedSnapshot.GetRelationalModel(), db.Model.GetRelationalModel());
+        var differences = differ.GetDifferences(initializedSnapshot.GetRelationalModel(), db.GetService<IDesignTimeModel>().Model.GetRelationalModel());
 
         Assert.True(differences.Count == 0, string.Join(Environment.NewLine, differences.Select(operation => operation.GetType().Name + ": " + operation)));
     }
