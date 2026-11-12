@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 namespace ProgIIICazador.Web.Modules.CapturaOfertas.Controllers;
 

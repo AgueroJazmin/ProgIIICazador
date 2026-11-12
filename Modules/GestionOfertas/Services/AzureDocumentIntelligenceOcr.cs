@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace ProgIIICazador.Web.Services.Procesamiento;
+namespace ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 public sealed class AzureDocumentIntelligenceOcr(HttpClient http, IConfiguration configuration) : IProveedorOCR
 {

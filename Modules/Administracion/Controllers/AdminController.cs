@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
 using ProgIIICazador.Web.Modules.Administracion.ViewModels;
-using ProgIIICazador.Web.Services.Captura;
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Services;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 namespace ProgIIICazador.Web.Modules.Administracion.Controllers;
 

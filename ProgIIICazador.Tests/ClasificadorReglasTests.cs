@@ -1,5 +1,5 @@
-using ProgIIICazador.Web.Services.Procesamiento;
-using ProgIIICazador.Web.Services.Captura;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
 using Xunit;
 
 namespace ProgIIICazador.Tests;

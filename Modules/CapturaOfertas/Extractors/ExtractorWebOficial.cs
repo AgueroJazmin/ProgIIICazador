@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace ProgIIICazador.Web.Services.Captura;
+namespace ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
 
 /// <summary>Lee páginas HTTPS oficiales, metadatos, JSON-LD y enlaces internos relacionados con promociones.</summary>
 public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente

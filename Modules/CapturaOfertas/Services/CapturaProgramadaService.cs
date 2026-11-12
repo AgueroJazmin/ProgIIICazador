@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 
-namespace ProgIIICazador.Web.Services.Captura;
+namespace ProgIIICazador.Web.Modules.CapturaOfertas.Services;
 
 public sealed class CapturaProgramadaService(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<CapturaProgramadaService> logger) : BackgroundService
 {

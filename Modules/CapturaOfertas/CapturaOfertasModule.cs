@@ -1,4 +1,5 @@
-using ProgIIICazador.Web.Services.Captura;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Services;
 
 namespace ProgIIICazador.Web.Modules.CapturaOfertas;
 

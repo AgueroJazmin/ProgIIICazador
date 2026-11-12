@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
 using ProgIIICazador.Web.Modules.GestionOfertas;
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
 using Xunit;
 
 namespace ProgIIICazador.Tests;

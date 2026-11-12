@@ -1,5 +1,5 @@
 using System.Net;
-using ProgIIICazador.Web.Services.Captura;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
 using Xunit;
 
 namespace ProgIIICazador.Tests;

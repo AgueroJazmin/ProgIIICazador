@@ -2,8 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
-using ProgIIICazador.Web.Services.Captura;
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Services;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
 using Xunit;
 
 namespace ProgIIICazador.Tests;

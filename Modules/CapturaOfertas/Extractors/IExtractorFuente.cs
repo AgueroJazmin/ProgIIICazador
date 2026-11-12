@@ -1,4 +1,4 @@
-namespace ProgIIICazador.Web.Services.Captura;
+namespace ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
 
 public interface IExtractorFuente
 {

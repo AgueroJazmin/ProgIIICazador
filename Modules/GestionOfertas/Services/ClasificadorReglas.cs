@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace ProgIIICazador.Web.Services.Procesamiento;
+namespace ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 /// <summary>Clasificador conservador de respaldo. Los resultados requieren revisión humana.</summary>
 public sealed class ClasificadorReglas : IClasificadorOfertas

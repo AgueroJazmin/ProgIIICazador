@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using ProgIIICazador.Web.Data;
 using ProgIIICazador.Web.Models;
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
-namespace ProgIIICazador.Web.Services.Captura;
+namespace ProgIIICazador.Web.Modules.CapturaOfertas.Services;
 
 public sealed class ServicioCaptura(OfertasDbContext db, IExtractorFuente extractor, IClasificadorOfertas clasificador, ILogger<ServicioCaptura> logger)
 {

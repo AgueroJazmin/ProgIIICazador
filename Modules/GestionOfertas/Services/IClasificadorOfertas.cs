@@ -1,4 +1,4 @@
-namespace ProgIIICazador.Web.Services.Procesamiento;
+namespace ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 public interface IClasificadorOfertas
 {

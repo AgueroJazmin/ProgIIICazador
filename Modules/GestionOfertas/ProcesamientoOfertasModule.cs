@@ -1,4 +1,4 @@
-using ProgIIICazador.Web.Services.Procesamiento;
+using ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 namespace ProgIIICazador.Web.Modules.GestionOfertas;
 

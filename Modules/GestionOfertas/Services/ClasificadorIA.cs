@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace ProgIIICazador.Web.Services.Procesamiento;
+namespace ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 /// <summary>Conector opcional con una API compatible con OpenAI. Toda salida queda sujeta a revisión.</summary>
 public sealed class ClasificadorIA(HttpClient http, IConfiguration configuration) : IClasificadorOfertas

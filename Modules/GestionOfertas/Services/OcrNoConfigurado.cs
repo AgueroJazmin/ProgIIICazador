@@ -1,4 +1,4 @@
-namespace ProgIIICazador.Web.Services.Procesamiento;
+namespace ProgIIICazador.Web.Modules.GestionOfertas.Services;
 
 /// <summary>Proveedor seguro por defecto: no simula OCR ni devuelve texto inventado.</summary>
 public sealed class OcrNoConfigurado : IProveedorOCR

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace ProgIIICazador.Web.Services.Captura;
+namespace ProgIIICazador.Web.Modules.CapturaOfertas.Extractors;
 
 /// <summary>
 /// Divide páginas oficiales que publican varias bases y condiciones en candidatos independientes.
