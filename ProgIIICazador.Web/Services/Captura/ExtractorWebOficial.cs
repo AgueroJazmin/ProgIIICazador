@@ -72,20 +72,34 @@ public sealed class ExtractorWebOficial(HttpClient http) : IExtractorFuente
             }
             catch (JsonException) { }
         }
-        if (results.Count == 0 && !string.IsNullOrWhiteSpace(text))
+        if (!string.IsNullOrWhiteSpace(text))
         {
             var sections = SeparadorSeccionesPromocionales.Separar(html);
             if (sections.Count > 0)
             {
+                // Cuando hay bases individuales, estas son más útiles que un JSON-LD genérico
+                // o el texto completo de la página. Se evita guardar una página como una sola oferta.
+                results.Clear();
                 foreach (var section in sections)
                     results.Add(Build(url, section.Titulo, section.Texto, null));
             }
-            else
+            else if (results.Count == 0 && PareceContenerOferta(text))
             {
                 results.Add(Build(url, title, text[..Math.Min(text.Length, 12000)], null));
             }
         }
         return results;
+    }
+
+    private static bool PareceContenerOferta(string text)
+    {
+        var tieneContextoPromocional = Regex.IsMatch(text,
+            @"\\b(promoci[oó]n|oferta|descuento|reintegro|cup[oó]n|2\\s*x\\s*1)\\b",
+            RegexOptions.IgnoreCase);
+        var tieneBeneficio = Regex.IsMatch(text,
+            @"\\b(descuento|reintegro|ahorro|beneficio|cup[oó]n|bonificaci[oó]n|gratis|2\\s*x\\s*1)\\b",
+            RegexOptions.IgnoreCase);
+        return tieneContextoPromocional && tieneBeneficio;
     }
 
     private static ResultadoExtraccion Build(Uri url, string? title, string text, string? json)
