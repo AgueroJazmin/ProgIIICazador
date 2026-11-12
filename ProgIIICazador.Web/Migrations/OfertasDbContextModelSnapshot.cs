@@ -43,7 +43,7 @@ public sealed class OfertasDbContextModelSnapshot : ModelSnapshot
             entity.Property(e => e.Titulo).IsRequired().HasMaxLength(180).HasColumnType("nvarchar(180)");
             entity.Property(e => e.Descripcion).IsRequired().HasMaxLength(4000).HasColumnType("nvarchar(4000)");
             entity.Property(e => e.Beneficio).IsRequired().HasMaxLength(1000).HasColumnType("nvarchar(1000)");
-            entity.Property(e => e.Condiciones).IsRequired().HasMaxLength(6000).HasColumnType("nvarchar(6000)");
+            entity.Property(e => e.Condiciones).IsRequired().HasMaxLength(6000).HasColumnType("nvarchar(max)");
             entity.Property(e => e.VigenciaDesde).HasColumnType("datetime2");
             entity.Property(e => e.VigenciaHasta).HasColumnType("datetime2");
             entity.Property(e => e.UrlFuente).IsRequired().HasMaxLength(2048).HasColumnType("nvarchar(2048)");
