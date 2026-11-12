@@ -64,7 +64,9 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
         ViewBag.EsOferta = captura.EsOfertaDetectada;
         return View(new RevisionCapturaViewModel {
             CapturaId = captura.Id, Titulo = result.Titulo ?? captura.TituloDetectado ?? string.Empty,
-            Descripcion = captura.TextoDetectado, Beneficio = result.Beneficio ?? string.Empty,
+            // Oferta.Descripcion admite hasta 4.000 caracteres; el texto completo permanece en CapturaFuente.
+            Descripcion = (captura.TextoDetectado ?? string.Empty)[..Math.Min(captura.TextoDetectado?.Length ?? 0, 4000)],
+            Beneficio = result.Beneficio ?? string.Empty,
             Condiciones = result.Condiciones ?? string.Empty, TipoBeneficio = result.TipoBeneficio ?? "Beneficio",
             VigenciaDesde = result.Desde, VigenciaHasta = result.Hasta, Porcentaje = result.Porcentaje, Importe = result.Importe, UrlFuente = captura.Url
         });
@@ -109,7 +111,7 @@ public class AdminController(OfertasDbContext db, IConfiguration configuration, 
                 oferta.Beneficios.Clear();
             }
             oferta.Titulo = model.Titulo.Trim();
-            oferta.Descripcion = model.Descripcion.Trim();
+            oferta.Descripcion = (model.Descripcion ?? string.Empty).Trim();
             oferta.Beneficio = model.Beneficio.Trim();
             oferta.Condiciones = model.Condiciones.Trim();
             oferta.VigenciaDesde = model.VigenciaDesde;
