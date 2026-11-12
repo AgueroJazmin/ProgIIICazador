@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using ProgIIICazador.Web.Data;
@@ -127,6 +128,11 @@ public sealed class InitialCreate : Migration
         migrationBuilder.CreateIndex("IX_CapturasFuente_HuellaContenido", "CapturasFuente", "HuellaContenido", unique: true, filter: "[HuellaContenido] IS NOT NULL");
         migrationBuilder.CreateIndex("IX_Beneficios_OfertaId", "Beneficios", "OfertaId");
         migrationBuilder.CreateIndex("IX_Reportes_OfertaId", "Reportes", "OfertaId");
+    }
+
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
+    {
+        new OfertasDbContextModelSnapshot().BuildModelForMigration(modelBuilder);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
