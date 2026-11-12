@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using ProgIIICazador.Web.Data;
@@ -45,7 +46,11 @@ public class ModulosTests
             .Options;
         using var db = new OfertasDbContext(options);
 
-        Assert.False(db.Database.HasPendingModelChanges());
+        var snapshot = db.GetService<IMigrationsAssembly>().ModelSnapshot!;
+        var differ = db.GetService<IMigrationsModelDiffer>();
+        var differences = differ.GetDifferences(snapshot.Model.GetRelationalModel(), db.Model.GetRelationalModel());
+
+        Assert.Empty(differences.Select(operation => operation.GetType().Name + ": " + operation));
     }
 
     [Fact]
