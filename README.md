@@ -47,20 +47,16 @@ La cadena de conexión está en `ConnectionStrings:OfertasDb`. Para otro SQL Ser
 
 ## Configuración de administración
 
-No existe una contraseña predeterminada. Definí variables de entorno antes de ejecutar la aplicación:
-
-- `Admin__Usuario`: usuario administrador (por defecto se muestra admin si no se define).
-- `Admin__Contrasena`: contraseña segura obligatoria.
-
-En PowerShell:
+No existe una contraseña predeterminada. Para poder iniciar sesión al ejecutar con F5, configurá credenciales locales con User Secrets desde una terminal ubicada en la carpeta del repositorio:
 
 ```powershell
-$env:Admin__Usuario = "admin"
-$env:Admin__Contrasena = "CAMBIAR_POR_UNA_CLAVE_SEGURA"
-dotnet run --project ProgIIICazador.Web/ProgIIICazador.Web.csproj
+dotnet user-secrets set "Admin:Usuario" "admin" --project ProgIIICazador.Web
+dotnet user-secrets set "Admin:Contrasena" "TU_CLAVE_SEGURA" --project ProgIIICazador.Web
 ```
 
-El panel se abre desde Administración. Las rutas administrativas usan autenticación por cookie, HTTPS, autorización por rol y protección antifalsificación en los formularios. Si ejecutás desde Visual Studio, configurá las variables en el perfil de depuración o en la terminal antes de iniciar la aplicación. No se incluye una contraseña predeterminada.
+User Secrets guarda estos valores fuera del repositorio y ASP.NET Core los carga automáticamente en el entorno Development. No subas contraseñas ni claves al repositorio.
+
+El panel se abre desde Administración. Las rutas administrativas usan autenticación por cookie, HTTPS, autorización por rol y protección antifalsificación en los formularios.
 
 ## Captura automática
 
