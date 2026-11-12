@@ -16,6 +16,7 @@ public sealed class OfertasDbContextModelSnapshot : ModelSnapshot
     {
         modelBuilder.HasAnnotation("ProductVersion", "10.0.0")
             .HasAnnotation("Relational:MaxIdentifierLength", 128);
+        modelBuilder.UseIdentityColumns();
 
         modelBuilder.Entity<Empresa>(entity =>
         {
