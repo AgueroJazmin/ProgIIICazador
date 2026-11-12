@@ -23,7 +23,7 @@ app.UseHttpsRedirection(); app.UseStaticFiles(); app.UseRouting(); app.UseAuthen
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<OfertasDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    await db.Database.MigrateAsync();
 }
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run();
