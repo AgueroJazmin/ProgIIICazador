@@ -13,6 +13,10 @@ namespace ProgIIICazador.Web.Controllers;
 [Route("AdminCapturas")]
 public class AdminCapturasController(OfertasDbContext db, IProveedorOCR ocr) : Controller
 {
+    private static bool EsMismoDominio(Uri fuente, Uri oficial) =>
+        fuente.Host.Equals(oficial.Host, StringComparison.OrdinalIgnoreCase) ||
+        fuente.Host.EndsWith("." + oficial.Host, StringComparison.OrdinalIgnoreCase);
+
     [HttpGet("Subir")]
     public async Task<IActionResult> Subir()
     {
@@ -32,8 +36,13 @@ public class AdminCapturasController(OfertasDbContext db, IProveedorOCR ocr) : C
         if (!Uri.TryCreate(urlFuente, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps ||
             !string.IsNullOrEmpty(uri.UserInfo))
             ModelState.AddModelError("urlFuente", "Ingresá una URL HTTPS válida de la publicación oficial.");
-        if (!await db.Empresas.AnyAsync(e => e.Id == empresaId && e.Activa, cancellationToken))
+        var empresa = await db.Empresas.AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == empresaId && e.Activa, cancellationToken);
+        if (empresa is null)
             ModelState.AddModelError("empresaId", "Seleccioná una empresa válida.");
+        else if (uri is not null && Uri.TryCreate(empresa.UrlOficial, UriKind.Absolute, out var oficial) &&
+                 !EsMismoDominio(uri, oficial))
+            ModelState.AddModelError("urlFuente", "La URL debe pertenecer al dominio oficial de la empresa seleccionada.");
         if (!ModelState.IsValid) return View();
         try
         {
