@@ -40,7 +40,7 @@ public sealed class ServicioCaptura(OfertasDbContext db, IExtractorFuente extrac
                     {
                         throw;
                     }
-                    catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException or System.Text.Json.JsonException)
+                    catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException or System.Text.Json.JsonException or KeyNotFoundException)
                     {
                         logger.LogWarning(ex, "No se pudo clasificar el contenido de {Url}", resultado.Url);
                         clasificacion = new ResultadoClasificacion(false, null, null, null, null, null, null, null, null, 0,
