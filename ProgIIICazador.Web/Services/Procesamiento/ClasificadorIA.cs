@@ -43,7 +43,9 @@ public sealed class ClasificadorIA(HttpClient http, IConfiguration configuration
             choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
             throw new InvalidOperationException("La API de IA no devolvió una respuesta con opciones.");
         var message = choices[0];
-        if (!message.TryGetProperty("message", out var messageContent) ||
+        if (message.ValueKind != JsonValueKind.Object ||
+            !message.TryGetProperty("message", out var messageContent) ||
+            messageContent.ValueKind != JsonValueKind.Object ||
             !messageContent.TryGetProperty("content", out var contentElement) ||
             contentElement.ValueKind != JsonValueKind.String ||
             string.IsNullOrWhiteSpace(contentElement.GetString()))
