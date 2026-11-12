@@ -25,6 +25,14 @@ public class ClasificadorReglasTests
     }
 
     [Fact]
+    public async Task NoClasificaUnPrecioNormalComoPromocion()
+    {
+        var result = await _clasificador.ClasificarAsync("Combo clásico a $5.000", CancellationToken.None);
+        Assert.False(result.EsOferta);
+        Assert.Null(result.TipoBeneficio);
+    }
+
+    [Fact]
     public async Task NoClasificaTextoComunComoOferta()
     {
         var result = await _clasificador.ClasificarAsync("Conocé nuestros locales y horarios de atención.", CancellationToken.None);
